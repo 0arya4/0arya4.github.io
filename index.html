@@ -876,8 +876,9 @@
       </div>
     </div>
   </div>
-  <button class="btn btn-gold" onclick="createRoom()">دروستکردنی ژوور 🏠</button>
-  <button class="btn btn-outline" onclick="showScreen('screen-host-name')">← گەڕانەوە</button>
+  <button class="btn btn-gold" id="btn-create-room" onclick="createRoom()">دروستکردنی ژوور 🏠</button>
+  <button class="btn btn-gold" id="btn-update-roles" style="display:none;" onclick="updateRoles()">✅ نوێکردنەوە</button>
+  <button class="btn btn-outline" id="btn-adjust-back" onclick="showScreen('screen-host-name')">← گەڕانەوە</button>
 </div>
 
 <!-- ==================== SCREEN: JOIN ==================== -->
@@ -919,8 +920,17 @@
   <div id="host-start-btn" style="width:100%; display:none;">
     <button class="btn btn-green" onclick="startGame()">🎮 دەستپێکردنی یاری</button>
   </div>
+  <!-- Host: edit roles button -->
+  <div id="btn-edit-roles" style="display:none; width:100%;">
+    <button class="btn btn-outline" onclick="editRoles()" style="border-color:#00bfff; color:#00bfff;">✏️ دەستکاری کردنی ڕۆڵەکان</button>
+  </div>
+
   <div id="waiting-msg-player" class="waiting-msg" style="display:none;">
     چاوەڕوانی دەستپێکردنی یاری...
+  </div>
+  <!-- Shown to players while host is editing -->
+  <div id="waiting-editing-msg" class="waiting-msg" style="display:none; color:#ffd60a;">
+    ✏️ هۆستەکە ڕۆڵەکان چاک ئەکات...
   </div>
 
   <!-- Host: delete room -->
@@ -1599,6 +1609,96 @@ function toggleRole(role) {
 // ============================================================
 // CREATE ROOM
 // ============================================================
+// ============================================================
+// EDIT ROLES (host edits setup from waiting room)
+// ============================================================
+let isEditMode = false;
+
+function editRoles() {
+  isEditMode = true;
+  // Tell Firebase host is editing so players see the message
+  db.ref('rooms/' + roomCode + '/editing').set(true);
+  // Load current room settings back into the adjust screen
+  db.ref('rooms/' + roomCode).once('value').then(snap => {
+    const room = snap.val();
+    if (!room) return;
+
+    // Restore globals
+    playerCount   = room.playerCount   || 4;
+    mafiaCount    = room.mafiaCount    || 1;
+    anonymousMode = room.anonymousMode || false;
+    soloEnabled   = room.soloEnabled   || false;
+    selectedRoles = Object.assign({}, room.roles || {});
+
+    // Sync UI counters
+    document.getElementById('player-count-display').textContent = playerCount;
+    document.getElementById('mafia-count-display').textContent  = mafiaCount;
+    document.getElementById('mafia-count-hint').textContent =
+      'زۆرترین: ' + getMaxMafia(playerCount) + ' تیمی خراپ بۆ ' + playerCount + ' یاریزان';
+
+    // Sync toggles
+    document.getElementById('anon-toggle').classList.toggle('on', anonymousMode);
+    document.getElementById('solo-toggle').classList.toggle('on', soloEnabled);
+    document.getElementById('solo-hint').style.display = 'none';
+
+    // Sync role cards
+    const allRoles = ['doctor','sheriff','detective','bodyguard','sniper','psychologist',
+                      'reporter','bomber','serial','fool','hitman'];
+    allRoles.forEach(r => {
+      const el = document.getElementById('toggle-' + r);
+      if (!el) return;
+      const on = !!selectedRoles[r];
+      el.classList.toggle('role-off', !on);
+      const dot = document.getElementById('dot-' + r);
+      if (dot) dot.style.background = on ? 'var(--gold)' : '';
+    });
+
+    // Switch adjust-screen buttons to edit mode
+    document.getElementById('btn-create-room').style.display  = 'none';
+    document.getElementById('btn-update-roles').style.display = 'block';
+    document.getElementById('btn-adjust-back').style.display  = 'none';
+
+    showScreen('screen-adjust');
+  });
+}
+
+function updateRoles() {
+  // Validate solo requirement
+  if (soloEnabled) {
+    const hasSolo = ['fool','hitman'].some(k => selectedRoles[k]);
+    if (!hasSolo) {
+      showToast('⚠️ دوگمەی سۆڵۆت هەڵکردووە — سۆڵۆیەک هەڵبژێرە!');
+      return;
+    }
+  }
+  // Validate playerCount not reduced below current players
+  db.ref('rooms/' + roomCode + '/players').once('value').then(snap => {
+    const currentCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+    if (playerCount < currentCount) {
+      showToast('⚠️ ژمارەی یاریزانەکان (' + currentCount + ') زیاترە لە ئەوەی تازەت هەڵبژاردووە!');
+      return;
+    }
+
+    // Push updated settings to Firebase
+    db.ref('rooms/' + roomCode).update({
+      playerCount:   playerCount,
+      mafiaCount:    mafiaCount,
+      anonymousMode: anonymousMode,
+      soloEnabled:   soloEnabled,
+      roles:         selectedRoles,
+      editing:       false
+    }).then(() => {
+      isEditMode = false;
+      // Restore adjust-screen buttons to normal
+      document.getElementById('btn-create-room').style.display  = 'block';
+      document.getElementById('btn-update-roles').style.display = 'none';
+      document.getElementById('btn-adjust-back').style.display  = 'block';
+      showToast('✅ ڕۆڵەکان نوێکرانەوە!');
+      showScreen('screen-waiting');
+    });
+  });
+}
+
 function createRoom() {
   // If solo toggle is on, at least one solo role must be selected
   if (soloEnabled) {
@@ -1783,8 +1883,10 @@ function showWaitingRoles() {
 }
 
 function listenWaitingRoom() {
-  // Turn off any previous players listener
+  // Turn off any previous listeners
   db.ref('rooms/' + roomCode + '/players').off();
+  db.ref('rooms/' + roomCode + '/editing').off();
+  db.ref('rooms/' + roomCode + '/roles').off();
 
   // Show selected roles
   showWaitingRoles();
@@ -1792,11 +1894,34 @@ function listenWaitingRoom() {
   // Show correct exit button
   if (isHost) {
     document.getElementById('btn-delete-room').style.display = 'block';
-    document.getElementById('btn-leave-room').style.display = 'none';
+    document.getElementById('btn-leave-room').style.display  = 'none';
+    document.getElementById('btn-edit-roles').style.display  = 'block';
   } else {
     document.getElementById('btn-delete-room').style.display = 'none';
-    document.getElementById('btn-leave-room').style.display = 'block';
+    document.getElementById('btn-leave-room').style.display  = 'block';
+    document.getElementById('btn-edit-roles').style.display  = 'none';
   }
+
+  // Listen for host editing flag — show message to all non-host players
+  db.ref('rooms/' + roomCode + '/editing').on('value', snap => {
+    if (lastStatus !== '') return;
+    const editing = snap.val() === true;
+    if (!isHost) {
+      document.getElementById('waiting-editing-msg').style.display  = editing ? 'block' : 'none';
+      document.getElementById('waiting-msg-player').style.display   = editing ? 'none'  : 'block';
+    }
+    // Host: hide edit button while editing (they're already on adjust screen)
+    if (isHost) {
+      document.getElementById('btn-edit-roles').style.display = editing ? 'none' : 'block';
+    }
+    // Refresh roles card when editing finishes
+    if (!editing) showWaitingRoles();
+  });
+
+  // Live update roles card whenever host saves changes
+  db.ref('rooms/' + roomCode + '/roles').on('value', () => {
+    if (lastStatus === '') showWaitingRoles();
+  });
 
   db.ref('rooms/' + roomCode + '/players').on('value', snap => {
     // Stop reacting if game already started
@@ -1807,7 +1932,6 @@ function listenWaitingRoom() {
 
     if (isHost) {
       const activeCount = Object.values(players).filter(p => !p.left).length;
-      const totalCount  = Object.keys(players).length;
       db.ref('rooms/' + roomCode + '/playerCount').once('value').then(s => {
         const needed = s.val();
         document.getElementById('host-start-btn').style.display = 'block';
