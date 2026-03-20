@@ -687,10 +687,10 @@
 </style>
 
 <script>
-window.hitmanWinSound = new Audio("audio/hitman-win.mp3");
-hitmanWinSound.volume = 1;
+/* hitmanWinSound loaded via audio.js */
 </script>
 
+<script src="audio.js"></script>
 </head>
 <body>
 
@@ -1338,7 +1338,7 @@ hitmanWinSound.volume = 1;
   <div class="result-sub" id="go-sub">---</div>
 
   <div class="card" style="margin-top:20px; width:100%;">
-    <div class="card-title">یاریزانەکان و ڕۆڵەکانیان</div>
+    <div class="card-title">🏆 خشتەی خاڵەکان</div>
     <div id="go-players-list"></div>
   </div>
 
@@ -1452,6 +1452,14 @@ function rejoinGame() {
     const room = snap.val();
     const players = room.players || {};
 
+    // Check kicked blacklist first (by name)
+    const kickedPlayers = room.kickedPlayers || {};
+    const wasKicked = Object.values(kickedPlayers).includes(name);
+    if (wasKicked) {
+      showToast('❌ دەرکراویت، ناتوانیت دووبارە بەشداربیت!');
+      return;
+    }
+
     // Find player by name
     const match = Object.entries(players).find(([, p]) => p.name === name);
     if (!match) {
@@ -1460,6 +1468,9 @@ function rejoinGame() {
     }
 
     const [pid, player] = match;
+
+    // Clear left flag so they appear active again
+    db.ref('rooms/' + code + '/players/' + pid + '/left').set(false);
 
     // Restore state
     myId     = pid;
@@ -1479,6 +1490,7 @@ function rejoinGame() {
       else document.getElementById('waiting-msg-player').style.display = 'block';
       listenWaitingRoom();
       listenForGameStart();
+      listenForKick();
     } else if (status === 'gameover') {
       showGameOver();
     } else {
@@ -1676,8 +1688,8 @@ function deleteRoom() {
 }
 
 function leaveRoom() {
-  // Remove self from room
-  db.ref('rooms/' + roomCode + '/players/' + myId).remove().then(() => {
+  // Mark as left but keep data so they can rejoin with points intact
+  db.ref('rooms/' + roomCode + '/players/' + myId + '/left').set(true).then(() => {
     location.reload();
   });
 }
@@ -1794,13 +1806,17 @@ function listenWaitingRoom() {
     renderSlots(players);
 
     if (isHost) {
-      const count = Object.keys(players).length;
+      const activeCount = Object.values(players).filter(p => !p.left).length;
+      const totalCount  = Object.keys(players).length;
       db.ref('rooms/' + roomCode + '/playerCount').once('value').then(s => {
         const needed = s.val();
         document.getElementById('host-start-btn').style.display = 'block';
         const startBtn = document.querySelector('#host-start-btn button');
-        if (count < needed) {
-          startBtn.textContent = `چاوەڕوانی یاریزان... (${count}/${needed})`;
+        const hasLeft  = Object.values(players).some(p => p.left);
+        if (activeCount < needed || hasLeft) {
+          startBtn.textContent = hasLeft
+            ? `چاوەڕوانی گەڕانەوەی یاریزان... (${activeCount}/${needed})`
+            : `چاوەڕوانی یاریزان... (${activeCount}/${needed})`;
           startBtn.disabled = true;
         } else {
           startBtn.textContent = '🎮 دەستپێکردنی یاری';
@@ -1822,14 +1838,18 @@ function renderSlots(players) {
       const div = document.createElement('div');
       if (i < playerArr.length) {
         const [pid, pdata] = playerArr[i];
-        div.className = 'slot filled';
-        const isMe = pid === myId;
+        const isLeft  = pdata.left === true;
+        const isMe    = pid === myId;
         const canKick = isHost && !isMe;
+        const pts     = pdata.points || 0;
+        div.className = isLeft ? 'slot' : 'slot filled';
         div.innerHTML = `
           <span class="slot-num">${i+1}</span>
-          <span class="slot-name">${pdata.name}</span>
+          <span class="slot-name" style="${isLeft ? 'color:var(--text-muted);' : ''}">${pdata.name}${isLeft ? ' ↩' : ''}</span>
           ${isMe ? '<span class="slot-badge">تۆ</span>' : ''}
-          ${canKick ? `<button onclick="kickPlayer('${pid}', '${pdata.name}')" style="margin-right:auto; background:var(--red); border:none; border-radius:6px; color:white; font-size:11px; padding:3px 8px; cursor:pointer;">دەرکردن</button>` : ''}
+          <span style="margin-right:auto;"></span>
+          <span style="font-size:12px; color:var(--gold); font-weight:700; opacity:${isLeft ? 0.5 : 1};">${pts} خاڵ</span>
+          ${canKick ? `<button onclick="kickPlayer('${pid}', '${pdata.name}')" style="background:var(--red); border:none; border-radius:6px; color:white; font-size:11px; padding:3px 8px; cursor:pointer;">دەرکردن</button>` : ''}
         `;
       } else {
         div.className = 'slot';
@@ -1842,9 +1862,11 @@ function renderSlots(players) {
 
 function kickPlayer(pid, name) {
   if (!isHost) return;
-  // Set kicked flag so player sees message
+  // Add to kicked blacklist (by name) so they can never rejoin this room
+  db.ref('rooms/' + roomCode + '/kickedPlayers/' + pid).set(name);
+  // Notify the player they were kicked
   db.ref('rooms/' + roomCode + '/kickedPlayer').set({ pid, name, ts: Date.now() });
-  // Remove player from room after short delay
+  // Remove their data (frees the slot)
   setTimeout(() => {
     db.ref('rooms/' + roomCode + '/players/' + pid).remove();
     db.ref('rooms/' + roomCode + '/kickedPlayer').remove();
@@ -2613,10 +2635,10 @@ function showMelaPopup(data, callback) {
   }, 10000);
 }
 
-const AUDIO_KILL_1 = "audio/kill-1.mp3";
-const AUDIO_KILL_2 = "audio/kill-2.mp3";
+/* AUDIO_KILL_1 loaded via audio.js */
+/* AUDIO_KILL_2 loaded via audio.js */
 
-const AUDIO_VOTED = "audio/voted.mp3";
+/* AUDIO_VOTED loaded via audio.js */
 
 function showVotedPopup(playerName, callback) {
   playAudioFade(AUDIO_VOTED, 5000);
@@ -2664,7 +2686,7 @@ function showKilledPopup(playerName, callback) {
   }, 1000);
 }
 
-const AUDIO_SAVED = "audio/saved.mp3";
+/* AUDIO_SAVED loaded via audio.js */
 
 function showSavedPopup(playerName, callback) {
   playAudioFade(AUDIO_SAVED, 10000);
@@ -2743,8 +2765,21 @@ function openPlayersTable() {
     const players = snap.val();
     list.innerHTML = '';
 
-    const alive = Object.entries(players).filter(([,p]) => p.alive);
-    const dead  = Object.entries(players).filter(([,p]) => !p.alive);
+    // Sort all players by points descending, then alive first
+    const sorted = Object.entries(players).sort(([,a],[,b]) => {
+      const ptDiff = (b.points || 0) - (a.points || 0);
+      if (ptDiff !== 0) return ptDiff;
+      return b.alive - a.alive; // alive first on tie
+    });
+
+    const alive = sorted.filter(([,p]) => p.alive);
+    const dead  = sorted.filter(([,p]) => !p.alive);
+
+    // Header: points leaderboard label
+    const ptHeader = document.createElement('div');
+    ptHeader.style.cssText = 'font-size:11px; color:var(--gold); font-weight:700; margin-bottom:8px; padding-right:4px; text-align:center;';
+    ptHeader.textContent = '🏆 خاڵەکان';
+    list.appendChild(ptHeader);
 
     // Alive players first
     if (alive.length > 0) {
@@ -2760,9 +2795,11 @@ function openPlayersTable() {
         const initials = p.name[0].toUpperCase();
         const colors = ['#e63946','#4361ee','#2dc653','#ffd60a','#9b59b6','#00d4d4','#ff8c00','#e056fd'];
         const color = colors[p.name.charCodeAt(0) % colors.length];
+        const pts = p.points || 0;
         row.innerHTML = `
           <div class="player-row-avatar" style="background:${color}22; color:${color}; border:1.5px solid ${color};">${initials}</div>
           <span class="player-row-name">${p.name}${isMe}</span>
+          <span style="font-size:12px; font-weight:800; color:var(--gold); margin-left:auto;">${pts} خاڵ</span>
           <span class="player-row-status">💚</span>
         `;
         list.appendChild(row);
@@ -2779,9 +2816,11 @@ function openPlayersTable() {
       dead.forEach(([pid, p]) => {
         const row = document.createElement('div');
         row.className = 'player-row dead-row';
+        const pts = p.points || 0;
         row.innerHTML = `
           <div class="player-row-avatar" style="background:#333; color:#666;">💀</div>
           <span class="player-row-name" style="color:var(--text-muted); text-decoration:line-through;">${p.name}</span>
+          <span style="font-size:12px; font-weight:800; color:var(--gold); margin-left:auto; opacity:0.6;">${pts} خاڵ</span>
           <span class="player-row-status">☠️</span>
         `;
         list.appendChild(row);
@@ -2799,11 +2838,11 @@ function openMyRoleInfo() {
   if (myRole) openRoleDetail(myRole);
 }
 
-function playAudioFade(src, duration) {
+function playAudioFade(b64, duration) {
   // duration = total popup visible time
   // audio starts 1s early, fades in over 1.5s, fades out in last 2s
   try {
-    const audio = new Audio(src);
+    const audio = new Audio('data:audio/mp3;base64,' + b64);
     audio.volume = 0;
     audio.play().then(() => {
       // Fade in over 1.5s
@@ -2824,7 +2863,7 @@ function playAudioFade(src, duration) {
   } catch(e) {}
 }
 
-const AUDIO_REVIVE = "audio/revive.mp3";
+/* AUDIO_REVIVE loaded via audio.js */
 
 function showRevivePopup(playerName, callback) {
   // Start audio 1s before popup appears
@@ -3651,8 +3690,8 @@ function checkWinConditionThen(callback) {
 // ============================================================
 // GAME OVER
 // ============================================================
-const AUDIO_FOOL_1 = "audio/fool-1.mp3";
-const AUDIO_FOOL_2 = "audio/fool-2.mp3";
+/* AUDIO_FOOL_1 loaded via audio.js */
+/* AUDIO_FOOL_2 loaded via audio.js */
 
 function showGameOver() {
   showScreen('screen-gameover');
@@ -3695,35 +3734,64 @@ function showGameOver() {
       document.getElementById('go-sub').textContent = ' گێژەکە دەرکرا و بردیەوە !';
     }
 
+    // ── Team helpers ─────────────────────────────────────────
+    const mafiaRoles = ['mafia', 'mole'];
+    const soloRoles  = ['fool', 'hitman'];
+    const getTeam = r => mafiaRoles.includes(r) ? 'bad' : soloRoles.includes(r) ? 'solo' : 'good';
+
+    // ── Calculate points gained this round ───────────────────
+    const pointsGain = {};
+    const ptUpdates  = {};
+    Object.entries(players).forEach(([pid, p]) => {
+      const team = getTeam(p.role);
+      let gain = 0;
+      if (winner === 'fool' || winner === 'hitman') {
+        const soloWinnerId = winner === 'fool' ? room.foolWinner : room.hitmanWinner;
+        gain = (pid === soloWinnerId) ? 4 : 0;
+      } else if (winner === 'mafia') {
+        if (team === 'bad')  gain = p.alive ? 3 : 2;
+        else if (team === 'good') gain = 1;
+      } else if (winner === 'civilians') {
+        if (team === 'good') gain = p.alive ? 3 : 2;
+        else if (team === 'bad')  gain = 1;
+      }
+      pointsGain[pid] = gain;
+      ptUpdates['rooms/' + roomCode + '/players/' + pid + '/points'] = (p.points || 0) + gain;
+    });
+    // Only host writes to avoid double-counting
+    if (isHost) db.ref().update(ptUpdates);
+
+    // ── Build leaderboard sorted by total points ─────────────
+    const sorted = Object.entries(players)
+      .map(([pid, p]) => ({ pid, ...p,
+        totalPts: (p.points || 0) + (pointsGain[pid] || 0),
+        gain: pointsGain[pid] || 0
+      }))
+      .sort((a, b) => b.totalPts - a.totalPts);
+
     const list = document.getElementById('go-players-list');
     list.innerHTML = '';
+    const medals = ['🥇','🥈','🥉'];
 
-    // Team classification
-    const mafiaRoles  = ['mafia', 'mole'];
-    const soloRoles   = ['fool', 'hitman'];
-    // everything else = good team
-
-    Object.values(players).forEach(p => {
+    sorted.forEach((p, idx) => {
       const info = ROLE_INFO[p.role] || { name: p.role, emoji: '?' };
-
+      const team = getTeam(p.role);
       let teamColor, tagClass;
-      if (mafiaRoles.includes(p.role)) {
-        teamColor = 'rgba(230,57,70,0.15)';
-        tagClass  = 'tag-red';
-      } else if (soloRoles.includes(p.role)) {
-        teamColor = 'rgba(255,214,10,0.15)';
-        tagClass  = 'tag-gold';
-      } else {
-        teamColor = 'rgba(45,198,83,0.12)';
-        tagClass  = 'tag-green';
-      }
+      if (team === 'bad')       { teamColor = 'rgba(230,57,70,0.15)';  tagClass = 'tag-red'; }
+      else if (team === 'solo') { teamColor = 'rgba(255,214,10,0.15)'; tagClass = 'tag-gold'; }
+      else                      { teamColor = 'rgba(45,198,83,0.12)';  tagClass = 'tag-green'; }
 
-      const row = document.createElement('div');
-      row.className = 'info-row';
-      row.style.cssText = `padding:10px 14px; margin:4px 0; border-radius:10px; background:${teamColor};`;
+      const rank = medals[idx] || `${idx + 1}.`;
+      const row  = document.createElement('div');
+      row.className  = 'info-row';
+      row.style.cssText = `padding:10px 14px; margin:4px 0; border-radius:10px; background:${teamColor}; gap:8px;`;
       row.innerHTML = `
-        <span style="font-weight:600;">${info.emoji} ${p.name} ${p.alive ? '' : '💀'}</span>
+        <span style="font-size:18px; min-width:28px;">${rank}</span>
+        <span style="font-weight:600; flex:1;">${info.emoji} ${p.name} ${p.alive ? '' : '💀'}</span>
         <span class="tag ${tagClass}">${info.name}</span>
+        <span style="font-weight:800; color:var(--gold); font-size:13px; white-space:nowrap; text-align:left;">
+          ${p.totalPts} خاڵ${p.gain > 0 ? ` <span style="font-size:11px;color:#2dc653">(+${p.gain})</span>` : ''}
+        </span>
       `;
       list.appendChild(row);
     });
