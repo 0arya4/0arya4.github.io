@@ -3925,8 +3925,8 @@ function showGameOver() {
       const hitmanId = room.hitmanWinner;
       const hitmanName = hitmanId && players[hitmanId] ? players[hitmanId].name : 'هیتمان';
       document.getElementById('go-emoji').textContent = '🎯';
-      document.getElementById('go-title').textContent = hitmanName + ' دەیبرد!';
-      document.getElementById('go-sub').textContent = 'هیتمان نیشانەکەی دەرکرد — یەکسەر دەیبرد!';
+      document.getElementById('go-title').textContent = hitmanName + ' بردیەوە!';
+      document.getElementById('go-sub').textContent = 'هیتمان تارگیتەکەی دەرکرا — یەکسەر بردیەوە!';
     } else if (winner === 'fool') {
       // Play random fool win sound
       playAudioFade(Math.random() < 0.5 ? AUDIO_FOOL_1 : AUDIO_FOOL_2, 10000);
@@ -4173,9 +4173,9 @@ const ROLE_GUIDE = {
     img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzOCIgZmlsbD0iIzBhMGEwYSIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjgiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNiIvPgogIDxsaW5lIHgxPSIxMCIgeTE9IjQwIiB4Mj0iMjIiIHkyPSI0MCIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjU4IiB5MT0iNDAiIHgyPSI3MCIgeTI9IjQwIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iNDAiIHkxPSIxMCIgeDI9IjQwIiB5Mj0iMjIiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSI0MCIgeTE9IjU4IiB4Mj0iNDAiIHkyPSI3MCIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMiIgcj0iNSIgZmlsbD0iI2NjMDAwMCIgb3BhY2l0eT0iMC45Ii8+CiAgPHBhdGggZD0iTTM0IDM4IFEzMyA1MCAzNSA1NCBMNDUgNTQgUTQ3IDUwIDQ2IDM4IFoiIGZpbGw9IiNjYzAwMDAiIG9wYWNpdHk9IjAuOSIvPgogIDxwYXRoIGQ9Ik0zMSA0MSBMNDkgNDEgUTUwIDQzIDQ4IDQ0IEwzMiA0NCBRMzAgNDMgMzEgNDFaIiBmaWxsPSIjY2MwMDAwIiBvcGFjaXR5PSIwLjkiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPGxpbmUgeDE9IjEyIiB5MT0iMTIiIHgyPSIxOCIgeTI9IjE4IiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjY4IiB5MT0iMTIiIHgyPSI2MiIgeTI9IjE4IiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjEyIiB5MT0iNjgiIHgyPSIxOCIgeTI9IjYyIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjY4IiB5MT0iNjgiIHgyPSI2MiIgeTI9IjYyIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+Cjwvc3ZnPg==`,
     name: 'هیتمان',
     team: '🟡 سۆڵۆ',
-    ability: 'شەوی یەکەم لە یاریدا دەبێت یەک کەس بە نیشانەی خۆت هەڵبژێریت. ئەگەر ئەو کەسە لە ئەنجامی دەنگدانەکە دەرکرا — تۆ یەکسەر دەبەیتەوە و یاری تەواو دەبێت!',
-    win: 'هیتمان دەبەیتەوە کاتێک نیشانەکەی بە دەنگدان دەرکرێت.',
-    tip: 'تاکتیکانە بمێنە. ئەگەر یاریزانەکان بزانن تۆ هیتمانی، دەنگ بە نیشانەکەت نادەن!'
+    ability: 'شەوی یەکەم لە یاریدا دەبێت یەک کەس  تارگێت  بکەی. ئەگەر ئەو کەسە لە ئەنجامی دەنگدانەکە دەرکرا — تۆ یەکسەر دەبەیتەوە و یاری تەواو دەبێت!',
+    win: ' دەبەیتەوە کاتێک تارگێتەکەت بە دەنگدان دەرکرێت.',
+    tip: ' ئەو کەسەی تارگێتی ئەکەیت هەوڵبە گومانی بکەیتە سەر با یاریزانانی تر دەنگی پێبەن !'
   },
   mole: {
     emoji: '🐀',
