@@ -64,8 +64,46 @@
     padding: 24px 20px;
     gap: 16px;
   }
-  .screen.active { display: flex; }
-  .screen.active { padding-bottom: 70px; } /* space for role bar */
+  .screen.active { display: flex; padding-bottom: 70px; animation: screenIn 0.35s ease both; }
+  @keyframes screenIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── Main menu: bounces up ── */
+  #screen-main.active { animation: mainIn 0.5s cubic-bezier(0.2,0.8,0.3,1.1) both; }
+  @keyframes mainIn { from{opacity:0;transform:translateY(28px) scale(0.97)} 70%{transform:translateY(-3px) scale(1.01)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  /* ── Waiting room: slide up ── */
+  #screen-waiting.active { animation: waitingIn 0.4s ease both; }
+  @keyframes waitingIn { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── Role reveal: lights out → spotlight on ── */
+  #screen-role.active { animation: roleIn 0.85s ease both; }
+  @keyframes roleIn { 0%{opacity:0;filter:brightness(0)} 35%{opacity:0.5;filter:brightness(0.08)} 65%{filter:brightness(1.25)} 100%{opacity:1;filter:brightness(1)} }
+
+  /* ── Night phase: eerie dark fade-in ── */
+  #screen-night.active { animation: nightIn 1.0s ease both; }
+  @keyframes nightIn { 0%{opacity:0;filter:brightness(0)} 45%{opacity:0.55;filter:brightness(0.25)} 100%{opacity:1;filter:brightness(1)} }
+
+  /* ── Night result: curtain drops from top ── */
+  #screen-night-result.active { animation: nightResultIn 0.45s cubic-bezier(0.2,0.8,0.3,1.1) both; }
+  @keyframes nightResultIn { from{opacity:0;transform:translateY(-55px)} 70%{transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── Discussion: dawn brightness flash ── */
+  #screen-discussion.active { animation: dayIn 0.7s ease both; }
+  @keyframes dayIn { 0%{opacity:0;filter:brightness(0.12)} 50%{filter:brightness(1.45)} 100%{opacity:1;filter:brightness(1)} }
+
+  /* ── Vote: snaps in with bounce ── */
+  #screen-vote.active { animation: voteIn 0.45s cubic-bezier(0.2,0.8,0.3,1.2) both; }
+  @keyframes voteIn { from{opacity:0;transform:scale(0.91)} 70%{transform:scale(1.04)} to{opacity:1;transform:scale(1)} }
+
+  /* ── Vote result: zooms in from center ── */
+  #screen-vote-result.active { animation: voteResultIn 0.5s cubic-bezier(0.2,0.8,0.3,1.1) both; }
+  @keyframes voteResultIn { from{opacity:0;transform:scale(0.72)} 70%{transform:scale(1.05)} to{opacity:1;transform:scale(1)} }
+
+  /* ── Game over: big bounce (win class = celebration, lose class = shake) ── */
+  #screen-gameover.active          { animation: gameOverIn 0.7s cubic-bezier(0.2,0.8,0.3,1.3) both; }
+  #screen-gameover.go-lose.active  { animation: gameOverLose 0.65s ease both; }
+  @keyframes gameOverIn   { from{opacity:0;transform:scale(0.5) translateY(30px)} 65%{transform:scale(1.07) translateY(-5px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  @keyframes gameOverLose { 0%{opacity:0;filter:brightness(3)} 15%{opacity:1;filter:brightness(1)} 25%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 55%{transform:translateX(-6px)} 70%{transform:translateX(6px)} 85%{transform:translateX(-2px)} 100%{opacity:1;transform:translateX(0)} }
 
   /* ===== HEADER / LOGO ===== */
   .logo {
@@ -285,7 +323,9 @@
   .role-card.layla,    .role-guide-card.layla     { background:linear-gradient(135deg,#1a0028,#3d0060); border-color:#9b59b6; }
   .role-card.coroner,  .role-guide-card.coroner   { background:linear-gradient(135deg,#001a0d,#003320); border-color:#00ff88; }
   .role-card.mele,     .role-guide-card.mela      { background:linear-gradient(135deg,#001428,#002a50); border-color:#00bfff; }
-  .role-card.mole,     .role-guide-card.mole      { background:linear-gradient(135deg,#0a0a0a,#1a1a0a); border-color:#888800; }
+  .role-card.mole,         .role-guide-card.mole         { background:linear-gradient(135deg,#0a0a0a,#1a1a0a); border-color:#888800; }
+  .role-card.blackmailer,  .role-guide-card.blackmailer  { background:linear-gradient(135deg,#0a001a,#1a0033); border-color:#9900cc; }
+  .role-card.bodyguard,  .role-guide-card.bodyguard   { background:linear-gradient(135deg,#001428,#002060); border-color:#4895ef; }
   .role-card.hitman,   .role-guide-card.hitman    { background:linear-gradient(135deg,#0a0000,#1a0000); border-color:#cc0000; }
   .role-card.towzher,  .role-guide-card.towzher   { background:linear-gradient(135deg,#001a1a,#003d3d); border-color:#00d4d4; }
 
@@ -481,16 +521,194 @@
   .player-row-name { font-size: 14px; font-weight: 600; flex: 1; }
   .player-row-status { font-size: 18px; }
 
-  /* ===== REVIVE POPUP ===== */
-  @keyframes reviveIn {
-    0%   { transform: scale(0.3) translateY(40px); opacity: 0; }
-    60%  { transform: scale(1.1) translateY(-10px); opacity: 1; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
+  /* ===== REVIVE POPUP (Layla - 10s) ===== */
+  @keyframes rpBg {
+    0%  { background:rgba(0,0,0,0); }
+    15% { background:rgba(50,0,80,0.92); }
+    100%{ background:rgba(18,0,36,0.92); }
   }
-  @keyframes reviveFadeOut {
-    0%   { opacity: 1; transform: scale(1) translateY(0); }
-    100% { opacity: 0; transform: scale(1.2) translateY(-30px); }
+  #rp-bg { animation:rpBg 0.9s ease forwards; }
+  .rp-rays { position:absolute; top:0; left:50%; transform:translateX(-50%); width:200%; height:100%; pointer-events:none; }
+  .rp-ray  { position:absolute; top:0; left:50%; width:3px; height:0; background:linear-gradient(to bottom,rgba(224,86,253,0.85),transparent); transform-origin:top center; transform:translateX(-50%) rotate(var(--angle)); animation:rpRay 1.8s ease var(--delay,0s) forwards; }
+  @keyframes rpRay { 0%{height:0;opacity:0} 40%{opacity:0.7} 100%{height:85vh;opacity:0.2} }
+  .rp-spark { position:absolute; left:var(--sx); top:var(--sy); font-size:22px; animation:rpSpark 2.8s ease var(--sdelay,0.2s) infinite; opacity:0; }
+  @keyframes rpSpark { 0%{opacity:0;transform:translateY(0) scale(0.4)} 25%{opacity:1;transform:translateY(-18px) scale(1)} 100%{opacity:0;transform:translateY(-55px) scale(0.2)} }
+  #rp-orb { font-size:84px; display:block; margin-bottom:14px; animation:rpOrb 0.8s cubic-bezier(0.2,0.8,0.3,1.3) 0.3s both; }
+  @keyframes rpOrb { 0%{transform:translateY(120px) scale(0.2);opacity:0} 65%{transform:translateY(-14px) scale(1.18);opacity:1} 100%{transform:translateY(0) scale(1);opacity:1} }
+  #revive-popup-name { font-family:var(--font-header); font-size:34px; font-weight:800; color:#e056fd; text-shadow:0 0 20px #9b59b6,0 0 45px #6c2eb9,0 0 80px #e056fd; margin-bottom:10px; animation:rpName 0.6s ease 1.1s both; }
+  @keyframes rpName { from{opacity:0;transform:translateY(22px);filter:blur(5px)} to{opacity:1;transform:translateY(0);filter:blur(0)} }
+  #rp-revive-text { font-size:20px; color:#e056fd; font-weight:700; animation:rpText 0.5s ease 1.8s both; }
+  #rp-sub         { font-size:14px; color:#bb88dd; animation:rpText 0.5s ease 2.2s both; }
+  @keyframes rpText { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes rpFadeOut { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(0.85) translateY(-18px);filter:blur(7px)} }
+
+  /* ===== SNIPER POPUP (6s) ===== */
+  @keyframes spBg { 0%{background:rgba(0,0,0,0)} 5%{background:rgba(255,255,220,0.85)} 18%{background:rgba(8,8,0,0.94)} 100%{background:rgba(8,8,0,0.94)} }
+  #sp-bg { animation:spBg 0.6s ease forwards; }
+  #sp-crosshair { position:absolute; width:200px; height:200px; left:50%; top:42%; transform:translate(-50%,-50%); }
+  .sp-ring { position:absolute; border-radius:50%; border:2px solid rgba(255,214,10,0.75); left:50%; top:50%; transform:translate(-50%,-50%); }
+  .sp-ring1 { width:180px; height:180px; animation:spRing 0.45s ease 0.1s both; }
+  .sp-ring2 { width:96px;  height:96px;  animation:spRing 0.45s ease 0.2s both; }
+  @keyframes spRing { from{opacity:0;transform:translate(-50%,-50%) scale(2.2)} to{opacity:0.8;transform:translate(-50%,-50%) scale(1)} }
+  .sp-hline,.sp-vline { position:absolute; background:rgba(255,214,10,0.65); }
+  .sp-hline { width:180px; height:1px; top:50%; left:50%; transform:translate(-50%,-50%); animation:spLine 0.35s ease 0.3s both; }
+  .sp-vline { width:1px; height:180px; top:50%; left:50%; transform:translate(-50%,-50%); animation:spLine 0.35s ease 0.3s both; }
+  @keyframes spLine { from{opacity:0;transform:translate(-50%,-50%) scale(0)} to{opacity:0.65;transform:translate(-50%,-50%) scale(1)} }
+  .sp-crack { position:absolute; left:var(--cx); top:var(--cy); width:var(--cw); height:1.5px; background:linear-gradient(to right,rgba(255,200,0,0.9),transparent); transform-origin:left center; transform:translate(-50%,-50%) rotate(var(--ca)); animation:spCrack 0.3s ease 0.55s both; }
+  @keyframes spCrack { from{opacity:0;transform:translate(-50%,-50%) rotate(var(--ca)) scaleX(0)} to{opacity:0.8;transform:translate(-50%,-50%) rotate(var(--ca)) scaleX(1)} }
+  #sp-icon { font-size:80px; display:block; margin-bottom:10px; animation:spIcon 0.4s ease 0.65s both,sniperShake 0.35s ease 1.05s; }
+  @keyframes spIcon { from{opacity:0;transform:scale(0.4)} to{opacity:1;transform:scale(1)} }
+  #sniper-popup-top  { font-size:14px; color:#ffd60a; font-weight:600; margin-bottom:8px; animation:spTxt 0.4s ease 1.15s both; }
+  #sniper-popup-name { font-family:var(--font-header); font-size:34px; font-weight:800; color:#ffd60a; text-shadow:0 0 20px #ffd60a,0 0 40px #ff8c00; margin-bottom:10px; animation:spName 0.5s ease 1.45s both; }
+  #sp-sub  { font-size:18px; color:#ff8c00; font-weight:700; animation:spTxt 0.4s ease 1.95s both; }
+  #sp-sub2 { font-size:13px; color:var(--text-muted); animation:spTxt 0.4s ease 2.25s both; }
+  @keyframes spName { from{opacity:0;transform:scale(2.2) translateY(-6px);filter:blur(5px)} to{opacity:1;transform:scale(1);filter:blur(0)} }
+  @keyframes spTxt  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes spFadeOut { from{opacity:1} to{opacity:0;transform:scale(0.9);filter:blur(7px)} }
+
+  /* ===== MELA POPUP (6s) ===== */
+  @keyframes mpBgBlue { 0%{background:rgba(0,0,0,0)} 15%{background:rgba(0,55,95,0.93)} 100%{background:rgba(0,18,38,0.93)} }
+  @keyframes mpBgRed  { 0%{background:rgba(0,0,0,0)} 15%{background:rgba(110,0,18,0.93)} 100%{background:rgba(28,0,8,0.93)} }
+  .mp-ring-wrap { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none; }
+  .mp-ring { position:absolute; border-radius:50%; left:0; top:0; transform:translate(-50%,-50%); border:2px solid rgba(0,191,255,0.5); animation:mpRing 1.6s ease var(--mdelay,0s) infinite; }
+  @keyframes mpRing { 0%{width:24px;height:24px;opacity:0.85} 100%{width:320px;height:320px;opacity:0} }
+  #mp-drop { font-size:72px; display:block; margin-bottom:10px; animation:mpDrop 0.65s cubic-bezier(0.2,0.8,0.3,1.2) 0.2s both; }
+  @keyframes mpDrop { 0%{transform:translateY(-130px) scale(0.35);opacity:0} 68%{transform:translateY(12px) scale(1.18);opacity:1} 100%{transform:translateY(0) scale(1)} }
+  #mela-popup-top    { font-size:13px; font-weight:600; animation:mpTxt 0.4s ease 0.9s both; margin-bottom:8px; }
+  #mela-popup-name   { font-family:var(--font-header); font-size:30px; font-weight:800; margin-bottom:8px; animation:mpName 0.5s ease 1.25s both; }
+  #mela-popup-result { font-size:16px; font-weight:700; margin-bottom:6px; animation:mpTxt 0.4s ease 1.75s both; }
+  #mela-popup-sub    { font-size:13px; color:var(--text-muted); animation:mpTxt 0.4s ease 2.05s both; }
+  @keyframes mpName { from{opacity:0;transform:scale(1.6);filter:blur(4px)} to{opacity:1;transform:scale(1);filter:blur(0)} }
+  @keyframes mpTxt  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes mpFadeOut { from{opacity:1} to{opacity:0;transform:scale(0.95);filter:blur(5px)} }
+
+  /* ===== VOTED OUT POPUP (6s) ===== */
+  @keyframes vpBg { 0%{background:rgba(0,0,0,0)} 10%{background:rgba(140,35,0,0.92)} 30%{background:rgba(18,8,0,0.94)} 100%{background:rgba(18,8,0,0.94)} }
+  #vp-bg { animation:vpBg 0.65s ease forwards; }
+  #vp-gavel { font-size:80px; display:block; margin-bottom:10px; animation:vpGavel 0.4s cubic-bezier(0.4,0,0.2,1.6) 0.2s both; }
+  @keyframes vpGavel { 0%{transform:translateY(-220px) rotate(-50deg) scale(0.4);opacity:0} 78%{transform:translateY(10px) rotate(4deg) scale(1.12);opacity:1} 100%{transform:translateY(0) rotate(0deg) scale(1);opacity:1} }
+  #vp-stamp { font-size:26px; font-weight:900; color:#ff3300; border:4px solid #ff3300; border-radius:6px; padding:3px 14px; display:inline-block; transform:rotate(-8deg); text-shadow:0 0 10px #ff330088; box-shadow:0 0 14px #ff330055; margin-bottom:14px; animation:vpStamp 0.3s ease 0.75s both; }
+  @keyframes vpStamp { 0%{transform:rotate(-8deg) scale(3.5);opacity:0;filter:blur(5px)} 70%{transform:rotate(-8deg) scale(0.93);opacity:1;filter:blur(0)} 100%{transform:rotate(-8deg) scale(1);opacity:1} }
+  #voted-popup-name { font-family:var(--font-header); font-size:32px; font-weight:800; color:#ff8c00; text-shadow:0 0 20px #ff8c00,0 0 40px #e63946; margin-bottom:10px; animation:vpName 0.5s ease 1.25s both; }
+  @keyframes vpName { from{opacity:0;transform:translateX(-35px)} to{opacity:1;transform:translateX(0)} }
+  #vp-sub { font-size:16px; color:#ff8c00; font-weight:600; animation:mpTxt 0.4s ease 1.75s both; }
+  @keyframes vpFadeOut { from{opacity:1} to{opacity:0;transform:scale(0.88) translateY(22px);filter:blur(6px)} }
+
+  /* ===== SAVED POPUP (6s) ===== */
+  @keyframes svpBg { 0%{background:rgba(0,0,0,0)} 15%{background:rgba(0,90,25,0.9)} 40%{background:rgba(0,18,8,0.93)} 100%{background:rgba(0,18,8,0.93)} }
+  #svp-bg { animation:svpBg 0.7s ease forwards; }
+  .svp-ring { position:absolute; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); border:2px solid rgba(45,198,83,0.5); animation:svpRing 1.6s ease var(--svpd,0s) infinite; }
+  @keyframes svpRing { 0%{width:28px;height:28px;opacity:0.85} 100%{width:300px;height:300px;opacity:0} }
+  #svp-icon { font-size:82px; display:block; margin-bottom:12px; animation:svpShield 0.6s cubic-bezier(0.2,0.8,0.3,1.3) 0.3s both; }
+  @keyframes svpShield { 0%{transform:scale(0.15) rotate(-22deg);opacity:0} 68%{transform:scale(1.18) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+  #saved-popup-name { font-family:var(--font-header); font-size:34px; font-weight:800; color:#2dc653; text-shadow:0 0 20px #2dc653,0 0 40px #1a8a3a; margin-bottom:10px; animation:svpName 0.5s ease 1.05s both; }
+  @keyframes svpName { from{opacity:0;transform:scale(0.4);filter:blur(5px)} to{opacity:1;transform:scale(1);filter:blur(0)} }
+  #svp-text { font-size:18px; color:#2dc653; font-weight:700; animation:mpTxt 0.4s ease 1.65s both; }
+  #svp-hb   { font-size:22px; margin-top:12px; animation:mpTxt 0.4s ease 2.0s both,svpHb 0.6s ease 2.4s 3; }
+  @keyframes svpHb { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3);filter:drop-shadow(0 0 8px #2dc653)} }
+  @keyframes svpFadeOut { from{opacity:1} to{opacity:0;transform:scale(1.12);filter:blur(7px)} }
+
+  /* ===== SILENCED POPUP (6s) ===== */
+  @keyframes slpBg { 0%{background:rgba(0,0,0,0)} 10%{background:rgba(35,0,55,0.96)} 100%{background:rgba(10,0,26,0.96)} }
+  #slp-bg { animation:slpBg 0.5s ease forwards; }
+  .slp-bar { position:absolute; left:0; right:0; top:var(--slpt); height:3px; background:rgba(204,68,255,0.35); animation:slpGlitch 0.09s ease var(--slpd,0s) infinite; }
+  @keyframes slpGlitch { 0%,100%{opacity:0.25;transform:translateX(0) scaleX(1)} 25%{opacity:0.85;transform:translateX(-10px) scaleX(0.93)} 50%{opacity:0.08;transform:translateX(5px) scaleX(1.07)} 75%{opacity:0.55;transform:translateX(-3px)} }
+  #slp-icon { font-size:80px; display:block; margin-bottom:12px; animation:slpIcon 0.4s ease 0.2s both,slpPulse 0.5s ease 0.7s 3; }
+  @keyframes slpIcon { from{transform:scale(0) rotate(-22deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
+  @keyframes slpPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18);filter:drop-shadow(0 0 18px #cc44ff)} }
+  #silenced-popup-name { font-family:var(--font-header); font-size:32px; font-weight:800; color:#cc44ff; text-shadow:0 0 20px #9900cc,0 0 40px #6600aa; margin-bottom:10px; animation:slpName 0.5s ease 0.85s both,slpGlitchName 0.35s ease 1.4s both; }
+  @keyframes slpName { from{opacity:0;transform:scaleX(2.2);filter:blur(7px)} to{opacity:1;transform:scaleX(1);filter:blur(0)} }
+  @keyframes slpGlitchName { 0%,100%{text-shadow:0 0 20px #9900cc;transform:translateX(0)} 20%{text-shadow:5px 0 0 #0ff,-5px 0 0 #cc44ff;transform:translateX(-5px)} 40%{text-shadow:-5px 0 0 #0ff,5px 0 0 #cc44ff;transform:translateX(5px)} 60%{transform:translateX(-2px);opacity:0.6} 80%{transform:translateX(2px);opacity:1} }
+  #slp-text { font-size:20px; color:#cc44ff; font-weight:700; animation:slpTxt 0.4s ease 1.8s both; }
+  #slp-sub  { font-size:14px; color:#aa88cc; animation:slpTxt 0.4s ease 2.2s both; }
+  @keyframes slpTxt { from{opacity:0;transform:translateY(8px);filter:blur(2px)} to{opacity:1;transform:translateY(0);filter:blur(0)} }
+  @keyframes slpFadeOut { 0%{opacity:1} 30%{filter:blur(0) brightness(2)} 100%{opacity:0;filter:blur(9px) brightness(0.4)} }
+
+  /* ===== BODYGUARD SACRIFICE POPUP (6s) ===== */
+  @keyframes bgpBg { 0%{background:rgba(0,0,0,0)} 10%{background:rgba(0,50,120,0.92)} 35%{background:rgba(0,12,35,0.96)} 100%{background:rgba(0,12,35,0.96)} }
+  #bgp-bg { animation:bgpBg 0.7s ease forwards; }
+  .bgp-ring { position:absolute; border-radius:50%; left:50%; top:50%; transform:translate(-50%,-50%); border:2px solid rgba(72,149,239,0.5); animation:bgpRing 2s ease var(--bgpd,0s) infinite; }
+  @keyframes bgpRing { 0%{width:30px;height:30px;opacity:0.9} 100%{width:340px;height:340px;opacity:0} }
+  #bgp-shield { font-size:78px; display:block; margin-bottom:10px; animation:bgpShield 0.65s cubic-bezier(0.2,0.8,0.3,1.3) 0.2s both; }
+  @keyframes bgpShield { 0%{transform:scale(0.1) rotate(-30deg);opacity:0;filter:blur(6px)} 70%{transform:scale(1.22) rotate(5deg);opacity:1;filter:blur(0)} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+  #bgp-title { font-size:15px; font-weight:700; color:#64B5F6; animation:bgpTxt 0.4s ease 1.0s both; margin-bottom:4px; }
+  #bgp-bodyguard-name { font-family:var(--font-header); font-size:30px; font-weight:800; color:#4895ef; text-shadow:0 0 20px #4895ef,0 0 40px #1565C0; margin-bottom:14px; animation:bgpName 0.5s ease 1.3s both; }
+  @keyframes bgpName { from{opacity:0;transform:translateX(30px);filter:blur(4px)} to{opacity:1;transform:translateX(0);filter:blur(0)} }
+  #bgp-saved-wrap { background:rgba(72,149,239,0.12); border:1px solid rgba(72,149,239,0.35); border-radius:10px; padding:8px 20px; animation:bgpSaved 0.4s ease 2.0s both; }
+  @keyframes bgpSaved { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  #bgp-saved-label { font-size:13px; color:#90CAF9; margin-bottom:3px; }
+  #bgp-saved-name { font-family:var(--font-header); font-size:24px; font-weight:800; color:#90CAF9; text-shadow:0 0 14px #4895ef; }
+  @keyframes bgpTxt { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bgpFadeOut { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(1.12);filter:blur(7px)} }
+
+  /* legacy - kept for any leftover references */
+  @keyframes reviveIn { 0%{transform:scale(0.3) translateY(40px);opacity:0} 60%{transform:scale(1.1) translateY(-10px);opacity:1} 100%{transform:scale(1) translateY(0);opacity:1} }
+  @keyframes reviveFadeOut { 0%{opacity:1;transform:scale(1) translateY(0)} 100%{opacity:0;transform:scale(1.2) translateY(-30px)} }
+  /* ===== KILL POPUP ANIMATIONS ===== */
+  .kp-drip-wrap { position:absolute; top:0; left:0; right:0; height:140px; pointer-events:none; }
+  .kp-drip {
+    position:absolute; top:0;
+    background:linear-gradient(to bottom, #5a0000, #cc0000 60%, #ff000088);
+    border-radius:0 0 8px 8px;
+    animation: bloodDrip 1.4s ease-out forwards;
   }
+  @keyframes bloodDrip {
+    0%   { height:0; opacity:1; }
+    100% { height:110px; opacity:0.85; }
+  }
+  @keyframes killBgFlash {
+    0%   { background:rgba(0,0,0,0); }
+    12%  { background:rgba(160,0,0,0.92); }
+    35%  { background:rgba(8,0,0,0.96); }
+    100% { background:rgba(8,0,0,0.96); }
+  }
+  #kp-bg { animation: killBgFlash 0.9s ease forwards; }
+  #kp-skull {
+    font-size:96px; display:block; margin-bottom:14px;
+    animation: skullCrash 0.75s cubic-bezier(0.2,0.8,0.3,1.3) 0.25s both;
+  }
+  @keyframes skullCrash {
+    0%   { transform:translateY(-340px) scale(0.2) rotate(-25deg); opacity:0; }
+    65%  { transform:translateY(18px) scale(1.25) rotate(4deg); opacity:1; }
+    80%  { transform:translateY(-8px) scale(0.93) rotate(-1deg); }
+    92%  { transform:translateY(4px) scale(1.04); }
+    100% { transform:translateY(0) scale(1) rotate(0deg); opacity:1; }
+  }
+  #killed-popup-name {
+    font-family:var(--font-header); font-size:36px; font-weight:800; color:#ff2020;
+    text-shadow:0 0 24px #e63946, 0 0 50px #c1121f;
+    margin-bottom:10px;
+    animation: nameSlam 0.55s ease 1.05s both, nameGlitch 0.45s ease 1.6s both;
+  }
+  @keyframes nameSlam {
+    0%   { transform:scale(4) translateY(-8px); opacity:0; filter:blur(8px); }
+    65%  { transform:scale(0.94); opacity:1; filter:blur(0); }
+    100% { transform:scale(1); opacity:1; }
+  }
+  @keyframes nameGlitch {
+    0%,100% { text-shadow:0 0 24px #e63946, 0 0 50px #c1121f; transform:translateX(0); }
+    18%  { transform:translateX(-6px); text-shadow:6px 0 0 #0ff, -6px 0 0 #f00; }
+    36%  { transform:translateX(6px);  text-shadow:-6px 0 0 #0ff, 6px 0 0 #f00; }
+    54%  { transform:translateX(-3px); }
+    72%  { transform:translateX(3px);  }
+  }
+  #kp-killed-text {
+    font-size:20px; color:#e63946; font-weight:700; margin-bottom:6px;
+    animation: killTextIn 0.5s ease 2.0s both;
+  }
+  #kp-sub {
+    font-size:14px; color:var(--text-muted);
+    animation: killTextIn 0.5s ease 2.4s both;
+  }
+  @keyframes killTextIn {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes killFadeOut {
+    0%   { opacity:1; transform:scale(1); filter:blur(0); }
+    100% { opacity:0; transform:scale(1.2); filter:blur(10px); }
+  }
+
   @keyframes sniperShake {
     0%,100% { transform: rotate(0deg) scale(1); }
     20%      { transform: rotate(-15deg) scale(1.3); }
@@ -809,6 +1027,11 @@
         <div class="rg-name">مشکەکوێرە</div>
         <div class="role-select-dot on" id="dot-mole"></div>
       </div>
+      <div class="role-guide-card blackmailer" id="toggle-blackmailer" onclick="toggleRole('blackmailer')" style="position:relative; cursor:pointer;">
+        <div class="rg-emoji"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMGEwMDFhIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMyMjAwNDQiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjM3IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTAwY2MiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIwLjciLz4KICA8ZWxsaXBzZSBjeD0iNDAiIGN5PSIyNyIgcng9IjEzIiByeT0iMTUiIGZpbGw9IiNlOGM4OWEiLz4KICA8cGF0aCBkPSJNMjcgMjIgUTI3IDggNDAgOSBRNTMgOCA1MyAyMiBRNTEgMTMgNDAgMTMgUTI5IDEzIDI3IDIyWiIgZmlsbD0iIzExMDAyMiIvPgogIDxlbGxpcHNlIGN4PSIzNSIgY3k9IjI0IiByeD0iMy4yIiByeT0iMS44IiBmaWxsPSIjMGEwMDFhIi8+CiAgPGVsbGlwc2UgY3g9IjQ1IiBjeT0iMjQiIHJ4PSIzLjIiIHJ5PSIxLjgiIGZpbGw9IiMwYTAwMWEiLz4KICA8ZWxsaXBzZSBjeD0iMzUiIGN5PSIyNCIgcng9IjEuNCIgcnk9IjAuOSIgZmlsbD0iI2NjNDRmZiIvPgogIDxlbGxpcHNlIGN4PSI0NSIgY3k9IjI0IiByeD0iMS40IiByeT0iMC45IiBmaWxsPSIjY2M0NGZmIi8+CiAgPHJlY3QgeD0iMzMiIHk9IjMyIiB3aWR0aD0iMTQiIGhlaWdodD0iNCIgcng9IjIiIGZpbGw9IiM3NzAwYWEiLz4KICA8cGF0aCBkPSJNNTYgNTAgUTUyIDQ0IDQ3IDM2IiBzdHJva2U9IiNlOGM4OWEiIHN0cm9rZS13aWR0aD0iNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGVsbGlwc2UgY3g9IjQ3IiBjeT0iMzUiIHJ4PSIyLjUiIHJ5PSIzIiBmaWxsPSIjZThjODlhIi8+CiAgPHBhdGggZD0iTTI3IDQxIFEyMCA1NCAxOCA3MCBMNjIgNzAgUTYwIDU0IDUzIDQxIFE0NyA0NyA0MCA0NyBRMzMgNDcgMjcgNDFaIiBmaWxsPSIjMWEwMDMzIi8+Cjwvc3ZnPgo=" style="width:38px;height:38px;"></div>
+        <div class="rg-name">بلاکمەیلەر</div>
+        <div class="role-select-dot on" id="dot-blackmailer"></div>
+      </div>
     </div>
 
     <!-- Good Team -->
@@ -858,6 +1081,11 @@
         <div class="rg-emoji">💧</div>
         <div class="rg-name">مەلا</div>
         <div class="role-select-dot on" id="dot-mela"></div>
+      </div>
+      <div class="role-guide-card bodyguard" id="toggle-bodyguard" onclick="toggleRole('bodyguard')" style="position:relative; cursor:pointer;">
+        <div class="rg-emoji"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMDcxMTFmIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMwZDJiNTIiIG9wYWNpdHk9IjAuNDUiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDg5NWVmIiBzdHJva2Utd2lkdGg9IjEuMiIgb3BhY2l0eT0iMC42Ii8+PGVsbGlwc2UgY3g9IjQyIiBjeT0iMjAiIHJ4PSIxMCIgcnk9IjExIiBmaWxsPSIjZThjODlhIi8+PHBhdGggZD0iTTMyIDE2IFEzMiA3IDQyIDggUTUyIDcgNTIgMTYgUTUwIDEwIDQyIDEwIFEzNCAxMCAzMiAxNloiIGZpbGw9IiMxYTI4NDAiLz48ZWxsaXBzZSBjeD0iMzguNSIgY3k9IjE5IiByeD0iMiIgcnk9IjEuNyIgZmlsbD0iIzBkMWIzNSIvPjxlbGxpcHNlIGN4PSI0NS41IiBjeT0iMTkiIHJ4PSIyIiByeT0iMS43IiBmaWxsPSIjMGQxYjM1Ii8+PGVsbGlwc2UgY3g9IjM4LjgiIGN5PSIxOC44IiByeD0iMC44IiByeT0iMSIgZmlsbD0iIzQ4OTVlZiIvPjxlbGxpcHNlIGN4PSI0NS44IiBjeT0iMTguOCIgcng9IjAuOCIgcnk9IjEiIGZpbGw9IiM0ODk1ZWYiLz48cGF0aCBkPSJNMzkgMjUgUTQyIDI2LjUgNDUgMjUiIHN0cm9rZT0iIzlhOGE3YSIgc3Ryb2tlLXdpZHRoPSIxLjEiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCAzNiBRMjMgNTIgMjIgNjggTDYyIDY4IFE2MSA1MiA1NiAzNiBRNTAgNDEgNDIgNDEgUTM0IDQxIDI4IDM2WiIgZmlsbD0iIzFhM2E2ZSIvPjxwYXRoIGQ9Ik0zMSAzNiBRNDIgNDMgNTMgMzYgUTUwIDU0IDQyIDU3IFEzNCA1NCAzMSAzNloiIGZpbGw9IiMwZDIyNTUiLz48bGluZSB4MT0iNDIiIHkxPSIzNiIgeDI9IjQyIiB5Mj0iNTciIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjkiIG9wYWNpdHk9IjAuNSIvPjxwYXRoIGQ9Ik0zMyA0MyBRNDIgNDcgNTEgNDMiIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjgiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIyNCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxlbGxpcHNlIGN4PSI2MCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxwYXRoIGQ9Ik0yNiA0MCBRMjAgNTAgMjAgNjAiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyA0NSBMNyA2MCBRNyA2OSAxNiA3MyBRMjUgNjkgMjUgNjAgTDI1IDQ1IFoiIGZpbGw9IiMxNTY1QzAiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48cGF0aCBkPSJNOSA0NyBMOSA1OSBROSA2NiAxNiA3MCBRMjMgNjYgMjMgNTkgTDIzIDQ3IFoiIGZpbGw9IiMwRDQ3QTEiLz48bGluZSB4MT0iMTYiIHkxPSI0NiIgeDI9IjE2IiB5Mj0iNzIiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjEiIG9wYWNpdHk9IjAuOCIvPjxsaW5lIHgxPSI4IiB5MT0iNTgiIHgyPSIyNCIgeTI9IjU4IiBzdHJva2U9IiM2NEI1RjYiIHN0cm9rZS13aWR0aD0iMS4xIiBvcGFjaXR5PSIwLjgiLz48cGF0aCBkPSJNMTAgNDkgUTE0IDQ3IDE0IDUzIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zNSkiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNDAiIGN5PSI2OCIgcng9IjE4IiByeT0iMyIgZmlsbD0iIzQ4OTVlZiIgb3BhY2l0eT0iMC4yIi8+PC9zdmc+" style="width:38px;height:38px;"></div>
+        <div class="rg-name">بۆدیگارد</div>
+        <div class="role-select-dot on" id="dot-bodyguard"></div>
       </div>
     </div>
 
@@ -1025,6 +1253,24 @@
     </div>
   </div>
 
+  <!-- Blackmailer pick -->
+  <div id="night-blackmailer-section" style="display:none; width:100%;">
+    <div class="card" style="border-color:#9900cc;">
+      <div class="card-title" style="color:#9900cc;">🤫 کێ بێدەنگ دەکەیت؟</div>
+      <div class="player-list" id="blackmailer-target-list"></div>
+      <button class="btn" onclick="submitBlackmailerTarget()" style="margin-top:12px; background:#7700aa; color:#fff;" id="btn-blackmailer">بێدەنگکردن 🤫</button>
+    </div>
+  </div>
+
+  <!-- Bodyguard protect -->
+  <div id="night-bodyguard-section" style="display:none; width:100%;">
+    <div class="card" style="border-color:#4895ef;">
+      <div class="card-title" style="color:#4895ef;">🛡️ کێ ئەمشەو پارێزیت؟</div>
+      <div class="player-list" id="bodyguard-target-list"></div>
+      <button class="btn" onclick="submitBodyguardAction()" style="margin-top:12px; background:#1565C0; color:#fff;" id="btn-bodyguard">پارێزین 🛡️</button>
+    </div>
+  </div>
+
   <!-- Layla revive -->
   <div id="night-layla-section" style="display:none; width:100%;">
     <div class="card" style="border-color:#9b59b6;">
@@ -1084,6 +1330,7 @@
   <div class="card" style="width:100%;">
     <div class="vote-header">☀️ کاتی قسەکردن</div>
     <div class="vote-sub" id="disc-result">---</div>
+    <div id="disc-silenced-badge" style="display:none; margin-top:10px; background:rgba(153,0,204,0.15); border:1px solid #9900cc; border-radius:8px; padding:8px 12px; font-size:13px; color:#cc44ff; text-align:center;"></div>
   </div>
 
   <div class="status-bar" id="disc-status"></div>
@@ -1182,63 +1429,139 @@
 </div>
 
 <!-- ==================== REVIVE POPUP ==================== -->
-<div id="revive-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); flex-direction:column;">
-  <div id="revive-popup-inner" style="text-align:center;">
-    <div style="font-size:70px; margin-bottom:10px;">🔮</div>
-    <div id="revive-popup-name" style="font-family:var(--font-header); font-size:32px; font-weight:800; color:#9b59b6; text-shadow:0 0 30px #9b59b6, 0 0 60px #6c2eb9; margin-bottom:8px;"></div>
-    <div style="font-size:18px; color:#e056fd; font-weight:600;">گەڕایەوە بۆ ژیان!</div>
-    <div style="font-size:30px; margin-top:12px; animation:sparkleFloat 1s infinite;">✨</div>
+<div id="revive-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="rp-bg" style="position:absolute; inset:0;"></div>
+  <div class="rp-rays">
+    <div class="rp-ray" style="--angle:-22deg; --delay:0.15s;"></div>
+    <div class="rp-ray" style="--angle:-8deg;  --delay:0.35s;"></div>
+    <div class="rp-ray" style="--angle:5deg;   --delay:0.08s;"></div>
+    <div class="rp-ray" style="--angle:18deg;  --delay:0.28s;"></div>
+    <div class="rp-ray" style="--angle:32deg;  --delay:0.18s;"></div>
+  </div>
+  <div class="rp-spark" style="--sx:15%; --sy:65%;">✨</div>
+  <div class="rp-spark" style="--sx:78%; --sy:50%; --sdelay:0.6s;">⭐</div>
+  <div class="rp-spark" style="--sx:42%; --sy:78%; --sdelay:0.3s;">✨</div>
+  <div class="rp-spark" style="--sx:88%; --sy:62%; --sdelay:0.9s;">✨</div>
+  <div class="rp-spark" style="--sx:8%;  --sy:52%; --sdelay:0.45s;">⭐</div>
+  <div id="revive-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="rp-orb">🔮</div>
+    <div id="revive-popup-name"></div>
+    <div id="rp-revive-text">گەڕایەوە بۆ ژیان! ✨</div>
+    <div id="rp-sub">لەیلا فەریقی ئەی گەڕاندەوە</div>
   </div>
 </div>
 
 <!-- ==================== SNIPER POPUP ==================== -->
-<div id="sniper-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.85); flex-direction:column;">
-  <div id="sniper-popup-inner" style="text-align:center;">
-    <div style="font-size:70px; margin-bottom:6px; animation:sniperShake 0.4s ease;">🎯</div>
-    <div id="sniper-popup-top" style="font-size:15px; color:#ffd60a; margin-bottom:10px; font-weight:600;"></div>
-    <div id="sniper-popup-name" style="font-family:var(--font-header); font-size:32px; font-weight:800; color:#ffd60a; text-shadow:0 0 30px #ffd60a, 0 0 60px #ff8c00; margin-bottom:8px;"></div>
-    <div style="font-size:18px; color:#ff8c00; font-weight:600;">گوللەی خوارد! 🔫</div>
-    <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">سنایپەر لێی دا</div>
+<div id="sniper-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="sp-bg" style="position:absolute; inset:0;"></div>
+  <div id="sp-crosshair">
+    <div class="sp-ring sp-ring1"></div>
+    <div class="sp-ring sp-ring2"></div>
+    <div class="sp-hline"></div>
+    <div class="sp-vline"></div>
+  </div>
+  <div class="sp-crack" style="--cx:49%; --cy:45%; --ca:-38deg; --cw:95px;"></div>
+  <div class="sp-crack" style="--cx:51%; --cy:47%; --ca:12deg;  --cw:72px;"></div>
+  <div class="sp-crack" style="--cx:47%; --cy:50%; --ca:-68deg; --cw:58px;"></div>
+  <div class="sp-crack" style="--cx:53%; --cy:43%; --ca:52deg;  --cw:66px;"></div>
+  <div id="sniper-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="sp-icon">🎯</div>
+    <div id="sniper-popup-top"></div>
+    <div id="sniper-popup-name"></div>
+    <div id="sp-sub">گوللەی خوارد! 🔫</div>
+    <div id="sp-sub2">سنایپەر لێی دا</div>
   </div>
 </div>
 
 <!-- ==================== MELA POPUP ==================== -->
-<div id="mela-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.85); flex-direction:column;">
-  <div id="mela-popup-inner" style="text-align:center;">
-    <div style="font-size:60px; margin-bottom:6px;">💧</div>
-    <div id="mela-popup-top" style="font-size:15px; color:#00bfff; margin-bottom:10px; font-weight:600;"></div>
-    <div id="mela-popup-name" style="font-family:var(--font-header); font-size:30px; font-weight:800; margin-bottom:8px;"></div>
-    <div id="mela-popup-result" style="font-size:16px; font-weight:700; margin-bottom:6px;"></div>
-    <div id="mela-popup-sub" style="font-size:13px; color:var(--text-muted);"></div>
+<div id="mela-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="mp-bg" style="position:absolute; inset:0;"></div>
+  <div class="mp-ring-wrap">
+    <div class="mp-ring" style="--mdelay:0s;"></div>
+    <div class="mp-ring" style="--mdelay:0.45s;"></div>
+    <div class="mp-ring" style="--mdelay:0.9s;"></div>
+  </div>
+  <div id="mela-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="mp-drop">💧</div>
+    <div id="mela-popup-top"></div>
+    <div id="mela-popup-name"></div>
+    <div id="mela-popup-result"></div>
+    <div id="mela-popup-sub"></div>
   </div>
 </div>
 
 <!-- ==================== VOTED OUT POPUP ==================== -->
-<div id="voted-popup" style="display:none; position:fixed; inset:0; z-index:999; align-items:center; justify-content:center; background:rgba(0,0,0,0.85); flex-direction:column; pointer-events:none;">
-  <div id="voted-popup-inner" style="text-align:center;">
-    <div style="font-size:70px; margin-bottom:10px;">🗳️</div>
-    <div id="voted-popup-name" style="font-family:var(--font-header); font-size:32px; font-weight:800; color:#ff8c00; text-shadow:0 0 30px #ff8c00, 0 0 60px #e63946; margin-bottom:8px;"></div>
-    <div style="font-size:18px; color:#ff8c00; font-weight:600;">دەرکرا بە دەنگدان! 🗳️</div>
+<div id="voted-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="vp-bg" style="position:absolute; inset:0;"></div>
+  <div id="voted-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="vp-gavel">🔨</div>
+    <div id="vp-stamp">مەحکووم!</div>
+    <div id="voted-popup-name"></div>
+    <div id="vp-sub">دەرکرا بە دەنگدان 🗳️</div>
   </div>
 </div>
 
 <!-- ==================== KILLED POPUP ==================== -->
-<div id="killed-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.85); flex-direction:column;">
-  <div id="killed-popup-inner" style="text-align:center;">
-    <div style="font-size:70px; margin-bottom:10px;">💀</div>
-    <div id="killed-popup-name" style="font-family:var(--font-header); font-size:32px; font-weight:800; color:#e63946; text-shadow:0 0 30px #e63946, 0 0 60px #c1121f; margin-bottom:8px;"></div>
-    <div style="font-size:18px; color:#e63946; font-weight:600;">ئەمشەو کوژرا! 🔪</div>
-    <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">مافیا لێی دا</div>
+<div id="killed-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="kp-bg" style="position:absolute; inset:0;"></div>
+  <div class="kp-drip-wrap">
+    <div class="kp-drip" style="left:5%;  animation-delay:0.05s; width:7px;"></div>
+    <div class="kp-drip" style="left:18%; animation-delay:0.25s; width:10px;"></div>
+    <div class="kp-drip" style="left:32%; animation-delay:0.10s; width:6px;"></div>
+    <div class="kp-drip" style="left:50%; animation-delay:0.30s; width:9px;"></div>
+    <div class="kp-drip" style="left:65%; animation-delay:0.15s; width:7px;"></div>
+    <div class="kp-drip" style="left:80%; animation-delay:0.20s; width:11px;"></div>
+    <div class="kp-drip" style="left:92%; animation-delay:0.08s; width:6px;"></div>
+  </div>
+  <div id="killed-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="kp-skull">💀</div>
+    <div id="killed-popup-name"></div>
+    <div id="kp-killed-text">ئەمشەو کوژرا!</div>
+    <div id="kp-sub">مافیا لێی دا 🔪</div>
   </div>
 </div>
 
 <!-- ==================== SAVED POPUP ==================== -->
-<div id="saved-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); flex-direction:column;">
-  <div id="saved-popup-inner" style="text-align:center;">
-    <div style="font-size:70px; margin-bottom:10px;">💚</div>
-    <div id="saved-popup-name" style="font-family:var(--font-header); font-size:32px; font-weight:800; color:#2dc653; text-shadow:0 0 30px #2dc653, 0 0 60px #1a8a3a; margin-bottom:8px;"></div>
-    <div style="font-size:18px; color:#2dc653; font-weight:600;">دکتۆر ڕزگاری کرد! 💉</div>
-    <div style="font-size:30px; margin-top:12px; animation:sparkleFloat 1s infinite;">✨</div>
+<div id="saved-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="svp-bg" style="position:absolute; inset:0;"></div>
+  <div class="svp-ring" style="--svpd:0.3s;"></div>
+  <div class="svp-ring" style="--svpd:0.8s;"></div>
+  <div id="saved-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="svp-icon">🛡️</div>
+    <div id="saved-popup-name"></div>
+    <div id="svp-text">دکتۆر ڕزگاری کرد! 💉</div>
+    <div id="svp-hb">💚 💚 💚</div>
+  </div>
+</div>
+
+<!-- ==================== SILENCED POPUP ==================== -->
+<div id="silenced-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="slp-bg" style="position:absolute; inset:0;"></div>
+  <div class="slp-bar" style="--slpt:12%; --slpd:0s;"></div>
+  <div class="slp-bar" style="--slpt:33%; --slpd:0.07s;"></div>
+  <div class="slp-bar" style="--slpt:56%; --slpd:0.03s;"></div>
+  <div class="slp-bar" style="--slpt:74%; --slpd:0.11s;"></div>
+  <div id="silenced-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="slp-icon">🤫</div>
+    <div id="silenced-popup-name"></div>
+    <div id="slp-text">بێدەنگ کرا!</div>
+    <div id="slp-sub">نابێ قسە بکەی ئەمڕۆ</div>
+  </div>
+</div>
+
+<!-- ==================== BODYGUARD SACRIFICE POPUP ==================== -->
+<div id="bodyguard-popup" style="display:none; position:fixed; inset:0; z-index:999; pointer-events:none; align-items:center; justify-content:center; flex-direction:column; overflow:hidden;">
+  <div id="bgp-bg" style="position:absolute; inset:0;"></div>
+  <div class="bgp-ring" style="--bgpd:0.2s;"></div>
+  <div class="bgp-ring" style="--bgpd:0.9s;"></div>
+  <div class="bgp-ring" style="--bgpd:1.6s;"></div>
+  <div id="bodyguard-popup-inner" style="text-align:center; position:relative; z-index:2;">
+    <div id="bgp-shield">🛡️</div>
+    <div id="bgp-title">بۆدیگارد پاراستی!</div>
+    <div id="bgp-bodyguard-name"></div>
+    <div id="bgp-saved-wrap">
+      <div id="bgp-saved-label">مافیا کوژرا لەبەر پارێزتنی ئەوی 🔫</div>
+    </div>
   </div>
 </div>
 
@@ -1269,6 +1592,10 @@
     <div class="role-guide-card mole" onclick="openRoleDetail('mole')">
       <div class="rg-emoji">🐀</div>
       <div class="rg-name">مشکەکوێرە</div>
+    </div>
+    <div class="role-guide-card blackmailer" onclick="openRoleDetail('blackmailer')">
+      <div class="rg-emoji">🤫</div>
+      <div class="rg-name">بلاکمەیلەر</div>
     </div>
   </div>
 
@@ -1310,6 +1637,10 @@
     <div class="role-guide-card mela" onclick="openRoleDetail('mela')">
       <div class="rg-emoji">💧</div>
       <div class="rg-name">مەلا</div>
+    </div>
+    <div class="role-guide-card bodyguard" onclick="openRoleDetail('bodyguard')">
+      <div class="rg-emoji"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMDcxMTFmIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMwZDJiNTIiIG9wYWNpdHk9IjAuNDUiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDg5NWVmIiBzdHJva2Utd2lkdGg9IjEuMiIgb3BhY2l0eT0iMC42Ii8+PGVsbGlwc2UgY3g9IjQyIiBjeT0iMjAiIHJ4PSIxMCIgcnk9IjExIiBmaWxsPSIjZThjODlhIi8+PHBhdGggZD0iTTMyIDE2IFEzMiA3IDQyIDggUTUyIDcgNTIgMTYgUTUwIDEwIDQyIDEwIFEzNCAxMCAzMiAxNloiIGZpbGw9IiMxYTI4NDAiLz48ZWxsaXBzZSBjeD0iMzguNSIgY3k9IjE5IiByeD0iMiIgcnk9IjEuNyIgZmlsbD0iIzBkMWIzNSIvPjxlbGxpcHNlIGN4PSI0NS41IiBjeT0iMTkiIHJ4PSIyIiByeT0iMS43IiBmaWxsPSIjMGQxYjM1Ii8+PGVsbGlwc2UgY3g9IjM4LjgiIGN5PSIxOC44IiByeD0iMC44IiByeT0iMSIgZmlsbD0iIzQ4OTVlZiIvPjxlbGxpcHNlIGN4PSI0NS44IiBjeT0iMTguOCIgcng9IjAuOCIgcnk9IjEiIGZpbGw9IiM0ODk1ZWYiLz48cGF0aCBkPSJNMzkgMjUgUTQyIDI2LjUgNDUgMjUiIHN0cm9rZT0iIzlhOGE3YSIgc3Ryb2tlLXdpZHRoPSIxLjEiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCAzNiBRMjMgNTIgMjIgNjggTDYyIDY4IFE2MSA1MiA1NiAzNiBRNTAgNDEgNDIgNDEgUTM0IDQxIDI4IDM2WiIgZmlsbD0iIzFhM2E2ZSIvPjxwYXRoIGQ9Ik0zMSAzNiBRNDIgNDMgNTMgMzYgUTUwIDU0IDQyIDU3IFEzNCA1NCAzMSAzNloiIGZpbGw9IiMwZDIyNTUiLz48bGluZSB4MT0iNDIiIHkxPSIzNiIgeDI9IjQyIiB5Mj0iNTciIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjkiIG9wYWNpdHk9IjAuNSIvPjxwYXRoIGQ9Ik0zMyA0MyBRNDIgNDcgNTEgNDMiIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjgiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIyNCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxlbGxpcHNlIGN4PSI2MCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxwYXRoIGQ9Ik0yNiA0MCBRMjAgNTAgMjAgNjAiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyA0NSBMNyA2MCBRNyA2OSAxNiA3MyBRMjUgNjkgMjUgNjAgTDI1IDQ1IFoiIGZpbGw9IiMxNTY1QzAiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48cGF0aCBkPSJNOSA0NyBMOSA1OSBROSA2NiAxNiA3MCBRMjMgNjYgMjMgNTkgTDIzIDQ3IFoiIGZpbGw9IiMwRDQ3QTEiLz48bGluZSB4MT0iMTYiIHkxPSI0NiIgeDI9IjE2IiB5Mj0iNzIiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjEiIG9wYWNpdHk9IjAuOCIvPjxsaW5lIHgxPSI4IiB5MT0iNTgiIHgyPSIyNCIgeTI9IjU4IiBzdHJva2U9IiM2NEI1RjYiIHN0cm9rZS13aWR0aD0iMS4xIiBvcGFjaXR5PSIwLjgiLz48cGF0aCBkPSJNMTAgNDkgUTE0IDQ3IDE0IDUzIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zNSkiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNDAiIGN5PSI2OCIgcng9IjE4IiByeT0iMyIgZmlsbD0iIzQ4OTVlZiIgb3BhY2l0eT0iMC4yIi8+PC9zdmc+" style="width:44px;height:44px;"></div>
+      <div class="rg-name">بۆدیگارد</div>
     </div>
   </div>
 
@@ -1384,6 +1715,8 @@ const FIREBASE_CONFIG = {
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
+// Start auto-cleanup of abandoned rooms immediately
+setTimeout(() => startAutoCleanup(), 5000);
 
 // ============================================================
 // GAME STATE
@@ -1397,7 +1730,7 @@ let playerCount = 4;
 let mafiaCount = 1;
 let anonymousMode = false;
 let soloEnabled = false;
-let selectedRoles = { mafia: true, civilian: true, doctor: true, detective: true, fool: false, sniper: true, towzher: true, hakim: true, layla: true, coroner: true, mela: true, mole: true, hitman: false };
+let selectedRoles = { mafia: true, civilian: true, doctor: true, detective: true, fool: false, sniper: true, towzher: true, hakim: true, layla: true, coroner: true, mela: true, mole: true, hitman: false, blackmailer: true, bodyguard: true };
 let roundNum = 1;
 let nightActionDone = false;
 let votedFor = null;
@@ -1418,9 +1751,11 @@ const ROLE_INFO = {
   towzher:   { name: 'توێژەر',   emoji: '🔬', class: 'towzher',   desc: 'هەر شەوێک دوو کەس هەڵدەبژێریت — بەراوردیان دەکەی بزانی هەمان تیمن؟' },
   hakim:     { name: 'حاکم',      emoji: '⚖️', class: 'hakim',     desc: 'دەنگی تۆ دوو بە دەنگ حسابە!' },
   hitman:    { name: 'هیتمان', emoji: '🎯', class: 'hitman', img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzOCIgZmlsbD0iIzBhMGEwYSIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjgiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNiIvPgogIDxsaW5lIHgxPSIxMCIgeTE9IjQwIiB4Mj0iMjIiIHkyPSI0MCIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjU4IiB5MT0iNDAiIHgyPSI3MCIgeTI9IjQwIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iNDAiIHkxPSIxMCIgeDI9IjQwIiB5Mj0iMjIiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSI0MCIgeTE9IjU4IiB4Mj0iNDAiIHkyPSI3MCIgc3Ryb2tlPSIjY2MwMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMiIgcj0iNSIgZmlsbD0iI2NjMDAwMCIgb3BhY2l0eT0iMC45Ii8+CiAgPHBhdGggZD0iTTM0IDM4IFEzMyA1MCAzNSA1NCBMNDUgNTQgUTQ3IDUwIDQ2IDM4IFoiIGZpbGw9IiNjYzAwMDAiIG9wYWNpdHk9IjAuOSIvPgogIDxwYXRoIGQ9Ik0zMSA0MSBMNDkgNDEgUTUwIDQzIDQ4IDQ0IEwzMiA0NCBRMzAgNDMgMzEgNDFaIiBmaWxsPSIjY2MwMDAwIiBvcGFjaXR5PSIwLjkiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPGxpbmUgeDE9IjEyIiB5MT0iMTIiIHgyPSIxOCIgeTI9IjE4IiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjY4IiB5MT0iMTIiIHgyPSI2MiIgeTI9IjE4IiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjEyIiB5MT0iNjgiIHgyPSIxOCIgeTI9IjYyIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+CiAgPGxpbmUgeDE9IjY4IiB5MT0iNjgiIHgyPSI2MiIgeTI9IjYyIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC40Ii8+Cjwvc3ZnPg==`, desc: 'شەوی یەکەم یەک کەس بە نیشانە دەدەیت. ئەگەر ئەو کەسە بە دەنگدان دەرکرا — تۆ یەکسەر دەبەیتەوە!' },
-  mole:      { name: 'مشکەکوێرە', emoji: '🐀', class: 'mole', desc: ' تۆ لە تیمی مافیایت ، ناتوانی دەنگ بدەیت بەڵام کاتێک لێکۆڵەر و توێژەر و ئەوانەی تر سێری ڕۆلەکەت ئەکەن وا دەردەکەویت لای ئەوان کە لەگەڵ تیمە باشەکەیت' },
+  mole:        { name: 'مشکەکوێرە',  emoji: '🐀', class: 'mole',        desc: ' تۆ لە تیمی مافیایت ، ناتوانی دەنگ بدەیت بەڵام کاتێک لێکۆڵەر و توێژەر و ئەوانەی تر سێری ڕۆلەکەت ئەکەن وا دەردەکەویت لای ئەوان کە لەگەڵ تیمە باشەکەیت' },
+  blackmailer: { name: 'بلاکمەیلەر', emoji: '🤫', class: 'blackmailer', img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8IS0tIERhcmsgQkcgLS0+CiAgPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iOCIgZmlsbD0iIzBhMDAxYSIvPgogIDwhLS0gUHVycGxlIGF1cmEgZ2xvdyAtLT4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzNiIgZmlsbD0iIzIyMDA0NCIgb3BhY2l0eT0iMC40Ii8+CiAgPCEtLSBPdXRlciByaW5nIC0tPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjM3IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTAwY2MiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIwLjciLz4KICA8IS0tIEhlYWQgLS0+CiAgPGVsbGlwc2UgY3g9IjQwIiBjeT0iMjciIHJ4PSIxMyIgcnk9IjE1IiBmaWxsPSIjZThjODlhIi8+CiAgPCEtLSBIb29kL2RhcmsgY2xvYWsgb3ZlciBoZWFkIC0tPgogIDxwYXRoIGQ9Ik0yNyAyMiBRMjcgOCA0MCA5IFE1MyA4IDUzIDIyIFE1MSAxMyA0MCAxMyBRMjkgMTMgMjcgMjJaIiBmaWxsPSIjMTEwMDIyIi8+CiAgPCEtLSBDbG9hayBzaWRlcyAtLT4KICA8cGF0aCBkPSJNMjcgMjIgUTI2IDE2IDI4IDIwIiBzdHJva2U9IiMxMTAwMjIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik01MyAyMiBRNTQgMTYgNTIgMjAiIHN0cm9rZT0iIzExMDAyMiIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CiAgPCEtLSBFeWVzIC0gZ2xvd2luZyBwdXJwbGUgbmFycm93IC0tPgogIDxlbGxpcHNlIGN4PSIzNSIgY3k9IjI0IiByeD0iMy4yIiByeT0iMS44IiBmaWxsPSIjMGEwMDFhIi8+CiAgPGVsbGlwc2UgY3g9IjQ1IiBjeT0iMjQiIHJ4PSIzLjIiIHJ5PSIxLjgiIGZpbGw9IiMwYTAwMWEiLz4KICA8ZWxsaXBzZSBjeD0iMzUiIGN5PSIyNCIgcng9IjEuNCIgcnk9IjAuOSIgZmlsbD0iI2NjNDRmZiIvPgogIDxlbGxpcHNlIGN4PSI0NSIgY3k9IjI0IiByeD0iMS40IiByeT0iMC45IiBmaWxsPSIjY2M0NGZmIi8+CiAgPCEtLSBFeWUgZ2xvdyAtLT4KICA8ZWxsaXBzZSBjeD0iMzUiIGN5PSIyNCIgcng9IjIuNSIgcnk9IjEuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTkwMGNjIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC42Ii8+CiAgPGVsbGlwc2UgY3g9IjQ1IiBjeT0iMjQiIHJ4PSIyLjUiIHJ5PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5MDBjYyIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuNiIvPgogIDwhLS0gVGFwZSBvdmVyIG1vdXRoIChwdXJwbGUpIC0tPgogIDxyZWN0IHg9IjMzIiB5PSIzMiIgd2lkdGg9IjE0IiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjNzcwMGFhIi8+CiAgPGxpbmUgeDE9IjM2IiB5MT0iMzMuNSIgeDI9IjM4IiB5Mj0iMzUuNSIgc3Ryb2tlPSIjOTkwMGNjIiBzdHJva2Utd2lkdGg9IjAuNyIvPgogIDxsaW5lIHgxPSIzOS41IiB5MT0iMzMuNSIgeDI9IjQxLjUiIHkyPSIzNS41IiBzdHJva2U9IiM5OTAwY2MiIHN0cm9rZS13aWR0aD0iMC43Ii8+CiAgPGxpbmUgeDE9IjQzIiB5MT0iMzMuNSIgeDI9IjQ1IiB5Mj0iMzUuNSIgc3Ryb2tlPSIjOTkwMGNjIiBzdHJva2Utd2lkdGg9IjAuNyIvPgogIDwhLS0gRmluZ2VyIHNodXNoaW5nIChpbmRleCBmaW5nZXIgcG9pbnRpbmcgdXAgdG8gdGFwZSkgLS0+CiAgPCEtLSBBcm0gZnJvbSByaWdodCBzaWRlIC0tPgogIDxwYXRoIGQ9Ik01NiA1MCBRNTIgNDQgNDcgMzYiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8IS0tIEluZGV4IGZpbmdlciB0aXAgYXQgbW91dGggLS0+CiAgPGVsbGlwc2UgY3g9IjQ3IiBjeT0iMzUiIHJ4PSIyLjUiIHJ5PSIzIiBmaWxsPSIjZThjODlhIi8+CiAgPCEtLSBPdGhlciBmaW5nZXJzIGN1cmxlZCAtLT4KICA8cGF0aCBkPSJNNTYgNTAgUTU4IDQ1IDU3IDQyIiBzdHJva2U9IiNlOGM4OWEiIHN0cm9rZS13aWR0aD0iMy41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNyIvPgogIDxwYXRoIGQ9Ik01NiA1MCBRNjAgNDcgNTkgNDQiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNSIvPgogIDwhLS0gQm9keSAvIGRhcmsgY2xvYWsgLS0+CiAgPHBhdGggZD0iTTI3IDQxIFEyMCA1NCAxOCA3MCBMNjIgNzAgUTYwIDU0IDUzIDQxIFE0NyA0NyA0MCA0NyBRMzMgNDcgMjcgNDFaIiBmaWxsPSIjMWEwMDMzIi8+CiAgPCEtLSBDbG9hayBjb2xsYXIgbGluZSAtLT4KICA8cGF0aCBkPSJNMjcgNDEgUTMzIDQ3IDQwIDQ3IFE0NyA0NyA1MyA0MSIgc3Ryb2tlPSIjOTkwMGNjIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNSIvPgogIDwhLS0gQm90dG9tIGdsb3cgLS0+CiAgPGVsbGlwc2UgY3g9IjQwIiBjeT0iNzAiIHJ4PSIxOCIgcnk9IjMiIGZpbGw9IiM5OTAwY2MiIG9wYWNpdHk9IjAuMjUiLz4KPC9zdmc+Cg==`, desc: 'هەر شەوێک یەک کەسی بێدەنگ دەکەیت. ئەو کەسە ناتوانێ ئەمڕۆ قسە بکات!' },
   mela:      { name: 'مەلا', emoji: '💧', class: 'mela', desc: 'یەک جار لە یاری دەتوانیت ئاوت بە یەک کەس بکەیت. ئەگەر لە تیمە خراپەکە بوو دەمرێت و ئاشکرا دەبێت. ئەگەر لە تیمە خراپەکە نەبوو تۆ دەمریت!' },
   coroner:   { name: 'پزیشکی دادگا', emoji: '🔦', class: 'coroner', desc: 'هەر شەوێک فەحسی یەک کەسی مردوو دەکەیت و ڕۆڵەکەی بە تەواوی دەزانیت!' },
+  bodyguard: { name: 'بۆدیگارد', emoji: '🛡️', class: 'bodyguard', img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMDcxMTFmIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMwZDJiNTIiIG9wYWNpdHk9IjAuNDUiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDg5NWVmIiBzdHJva2Utd2lkdGg9IjEuMiIgb3BhY2l0eT0iMC42Ii8+PGVsbGlwc2UgY3g9IjQyIiBjeT0iMjAiIHJ4PSIxMCIgcnk9IjExIiBmaWxsPSIjZThjODlhIi8+PHBhdGggZD0iTTMyIDE2IFEzMiA3IDQyIDggUTUyIDcgNTIgMTYgUTUwIDEwIDQyIDEwIFEzNCAxMCAzMiAxNloiIGZpbGw9IiMxYTI4NDAiLz48ZWxsaXBzZSBjeD0iMzguNSIgY3k9IjE5IiByeD0iMiIgcnk9IjEuNyIgZmlsbD0iIzBkMWIzNSIvPjxlbGxpcHNlIGN4PSI0NS41IiBjeT0iMTkiIHJ4PSIyIiByeT0iMS43IiBmaWxsPSIjMGQxYjM1Ii8+PGVsbGlwc2UgY3g9IjM4LjgiIGN5PSIxOC44IiByeD0iMC44IiByeT0iMSIgZmlsbD0iIzQ4OTVlZiIvPjxlbGxpcHNlIGN4PSI0NS44IiBjeT0iMTguOCIgcng9IjAuOCIgcnk9IjEiIGZpbGw9IiM0ODk1ZWYiLz48cGF0aCBkPSJNMzkgMjUgUTQyIDI2LjUgNDUgMjUiIHN0cm9rZT0iIzlhOGE3YSIgc3Ryb2tlLXdpZHRoPSIxLjEiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCAzNiBRMjMgNTIgMjIgNjggTDYyIDY4IFE2MSA1MiA1NiAzNiBRNTAgNDEgNDIgNDEgUTM0IDQxIDI4IDM2WiIgZmlsbD0iIzFhM2E2ZSIvPjxwYXRoIGQ9Ik0zMSAzNiBRNDIgNDMgNTMgMzYgUTUwIDU0IDQyIDU3IFEzNCA1NCAzMSAzNloiIGZpbGw9IiMwZDIyNTUiLz48bGluZSB4MT0iNDIiIHkxPSIzNiIgeDI9IjQyIiB5Mj0iNTciIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjkiIG9wYWNpdHk9IjAuNSIvPjxwYXRoIGQ9Ik0zMyA0MyBRNDIgNDcgNTEgNDMiIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjgiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIyNCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxlbGxpcHNlIGN4PSI2MCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxwYXRoIGQ9Ik0yNiA0MCBRMjAgNTAgMjAgNjAiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyA0NSBMNyA2MCBRNyA2OSAxNiA3MyBRMjUgNjkgMjUgNjAgTDI1IDQ1IFoiIGZpbGw9IiMxNTY1QzAiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48cGF0aCBkPSJNOSA0NyBMOSA1OSBROSA2NiAxNiA3MCBRMjMgNjYgMjMgNTkgTDIzIDQ3IFoiIGZpbGw9IiMwRDQ3QTEiLz48bGluZSB4MT0iMTYiIHkxPSI0NiIgeDI9IjE2IiB5Mj0iNzIiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjEiIG9wYWNpdHk9IjAuOCIvPjxsaW5lIHgxPSI4IiB5MT0iNTgiIHgyPSIyNCIgeTI9IjU4IiBzdHJva2U9IiM2NEI1RjYiIHN0cm9rZS13aWR0aD0iMS4xIiBvcGFjaXR5PSIwLjgiLz48cGF0aCBkPSJNMTAgNDkgUTE0IDQ3IDE0IDUzIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zNSkiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNDAiIGN5PSI2OCIgcng9IjE4IiByeT0iMyIgZmlsbD0iIzQ4OTVlZiIgb3BhY2l0eT0iMC4yIi8+PC9zdmc+`, desc: 'هەر شەوێک کەسێک بەئاگاداری پارێزیت. ئەگەر مافیا ئەو کەسە هەدەف بگرێت — مافیایەک بەتەسادوف دەمرێت و ئەو کەسە ژیان دەمێنێتەوە!' },
   layla:     { name: 'لەیلا فەریقی', emoji: '🔮', class: 'layla', img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MCA2MCI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMjgiIGZpbGw9InVybCgjYXVyYSkiIG9wYWNpdHk9IjAuNiIvPjxlbGxpcHNlIGN4PSIzMCIgY3k9IjIyIiByeD0iMTQiIHJ5PSIxNiIgZmlsbD0iIzFhMGEyZSIvPjxlbGxpcHNlIGN4PSIzMCIgY3k9IjI0IiByeD0iMTAiIHJ5PSIxMSIgZmlsbD0iI2Y0YzE4YSIvPjxwYXRoIGQ9Ik0xOCAxOCBRMTYgMzAgMTggMzgiIHN0cm9rZT0iIzFhMGEyZSIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDIgMTggUTQ0IDMwIDQyIDM4IiBzdHJva2U9IiMxYTBhMmUiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIwIDE0IFEyMiA4IDMwIDEwIFEzOCA4IDQwIDE0IiBmaWxsPSIjMWEwYTJlIi8+PGVsbGlwc2UgY3g9IjI2IiBjeT0iMjMiIHJ4PSIyIiByeT0iMi41IiBmaWxsPSIjMmQxYTVjIi8+PGVsbGlwc2UgY3g9IjM0IiBjeT0iMjMiIHJ4PSIyIiByeT0iMi41IiBmaWxsPSIjMmQxYTVjIi8+PGNpcmNsZSBjeD0iMjYuNyIgY3k9IjIyLjMiIHI9IjAuNyIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSIzNC43IiBjeT0iMjIuMyIgcj0iMC43IiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik0yMyAxOS41IFEyNiAxOC41IDI5IDE5LjUiIHN0cm9rZT0iIzFhMGEyZSIgc3Ryb2tlLXdpZHRoPSIxLjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAxOS41IFEzNCAxOC41IDM3IDE5LjUiIHN0cm9rZT0iIzFhMGEyZSIgc3Ryb2tlLXdpZHRoPSIxLjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOSAyNSBRMzAgMjcgMzEgMjUiIHN0cm9rZT0iI2Q0OTU2YSIgc3Ryb2tlLXdpZHRoPSIwLjgiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjYuNSAyOSBRMzAgMzEuNSAzMy41IDI5IiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSIjZTc0YzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjYuNSAyOSBRMzAgMjcuNSAzMy41IDI5IiBzdHJva2U9IiNjMDM5MmIiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0yMCAzOCBRMTggNTAgMjAgNTggTDQwIDU4IFE0MiA1MCA0MCAzOCBRMzUgNDIgMzAgNDIgUTI1IDQyIDIwIDM4WiIgZmlsbD0iIzZjMmViOSIvPjxyZWN0IHg9IjI3IiB5PSIzNCIgd2lkdGg9IjYiIGhlaWdodD0iNiIgcng9IjIiIGZpbGw9IiNmNGMxOGEiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjIwIiByPSIyIiBmaWxsPSIjOWI1OWI2Ij48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjAuODswLjI7MC44IiBkdXI9IjEuNXMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNSIgcj0iMS41IiBmaWxsPSIjZTA1NmZkIj48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjAuNjswLjE7MC42IiBkdXI9IjJzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjMwIiBjeT0iOCIgcj0iMS41IiBmaWxsPSIjZmZmIj48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjAuODswLjI7MC44IiBkdXI9IjFzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYXVyYSIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjOWI1OWI2IiBzdG9wLW9wYWNpdHk9IjAuNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzZjMmViOSIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PC9zdmc+`, desc: 'هەر شەوێک یەک کەسی مردوو دەگەڕێنیتەوە بۆ ژیان — تەنانەت مافیاش!' }
 };
 
@@ -1499,6 +1834,7 @@ function rejoinGame() {
 
     const status = room.status;
 
+    registerPresence();
     if (status === 'waiting') {
       document.getElementById('waiting-code').textContent = roomCode;
       showScreen('screen-waiting');
@@ -1648,8 +1984,8 @@ function editRoles() {
     document.getElementById('solo-hint').style.display = 'none';
 
     // Sync role cards
-    const allRoles = ['doctor','sheriff','detective','bodyguard','sniper','psychologist',
-                      'reporter','bomber','serial','fool','hitman'];
+    const allRoles = ['doctor','detective','sniper','towzher','hakim','layla',
+                      'coroner','mela','mole','fool','hitman','blackmailer','bodyguard'];
     allRoles.forEach(r => {
       const el = document.getElementById('toggle-' + r);
       if (!el) return;
@@ -1737,6 +2073,7 @@ function createRoom() {
     document.getElementById('waiting-code').textContent = roomCode;
     showScreen('screen-waiting');
     document.getElementById('host-start-btn').style.display = 'block';
+    registerPresence();
     listenWaitingRoom();
     listenForGameStart();
   });
@@ -1780,6 +2117,7 @@ function joinRoom() {
         showScreen('screen-waiting');
         if (isHost) document.getElementById('host-start-btn').style.display = 'block';
         else        document.getElementById('waiting-msg-player').style.display = 'block';
+        registerPresence();
         listenWaitingRoom();
         listenForGameStart();
         if (!isHost) listenForKick();
@@ -1809,6 +2147,7 @@ function joinRoom() {
       document.getElementById('waiting-code').textContent = roomCode;
       showScreen('screen-waiting');
       document.getElementById('waiting-msg-player').style.display = 'block';
+      registerPresence();
       listenWaitingRoom();
       listenForGameStart();
       listenForKick();
@@ -1841,6 +2180,29 @@ function leaveRoom() {
   db.ref('rooms/' + roomCode + '/players/' + myId + '/left').set(true).then(() => {
     location.reload();
   });
+}
+
+// ── Presence: auto-removes this player's entry when they close/refresh ──
+function registerPresence() {
+  if (!roomCode || !myId) return;
+  const presRef = db.ref('rooms/' + roomCode + '/presence/' + myId);
+  presRef.onDisconnect().remove();
+  presRef.set(true);
+}
+
+// ── Auto-cleanup: every 60s delete rooms with no active presence ──
+function startAutoCleanup() {
+  setInterval(() => {
+    db.ref('rooms').once('value').then(snap => {
+      if (!snap.exists()) return;
+      snap.forEach(roomSnap => {
+        const presence = roomSnap.child('presence').val();
+        if (!presence || Object.keys(presence).length === 0) {
+          roomSnap.ref.remove();
+        }
+      });
+    });
+  }, 60000);
 }
 
 function listenForKick() {
@@ -1913,7 +2275,9 @@ function showWaitingRoles() {
       layla:    { name: 'لەیلا',        emoji: '🔮' },
       coroner:  { name: 'پزیشکی دادگا', emoji: '🔦' },
       mela:     { name: 'مەلا',         emoji: '💧' },
-      mole:     { name: 'مشکەکوێرە',   emoji: '🐀' }
+      mole:        { name: 'مشکەکوێرە',  emoji: '🐀' },
+      blackmailer: { name: 'بلاکمەیلەر', emoji: '🤫' },
+      bodyguard:   { name: 'بۆدیگارد',   emoji: '🛡️' }
     };
 
     let hasAny = false;
@@ -1972,17 +2336,19 @@ function listenWaitingRoom() {
     if (lastStatus === '') showWaitingRoles();
   });
 
-  db.ref('rooms/' + roomCode + '/players').on('value', snap => {
-    // Stop reacting if game already started
-    if (lastStatus !== '') return;
+  // Read playerCount once, then start the players listener so needed is always in sync
+  db.ref('rooms/' + roomCode + '/playerCount').once('value').then(s => {
+    const needed = s.val();
 
-    const players = snap.val() || {};
-    renderSlots(players);
+    db.ref('rooms/' + roomCode + '/players').on('value', snap => {
+      // Stop reacting if game already started
+      if (lastStatus !== '') return;
 
-    if (isHost) {
-      const activeCount = Object.values(players).filter(p => !p.left).length;
-      db.ref('rooms/' + roomCode + '/playerCount').once('value').then(s => {
-        const needed = s.val();
+      const players = snap.val() || {};
+      renderSlots(players, needed);
+
+      if (isHost) {
+        const activeCount = Object.values(players).filter(p => !p.left).length;
         document.getElementById('host-start-btn').style.display = 'block';
         const startBtn = document.querySelector('#host-start-btn button');
         const hasLeft  = Object.values(players).some(p => p.left);
@@ -1995,42 +2361,39 @@ function listenWaitingRoom() {
           startBtn.textContent = '🎮 دەستپێکردنی یاری';
           startBtn.disabled = false;
         }
-      });
-    }
+      }
+    });
   });
 }
 
-function renderSlots(players) {
-  db.ref('rooms/' + roomCode + '/playerCount').once('value').then(snap => {
-    const needed = snap.val();
-    const container = document.getElementById('waiting-slots');
-    container.innerHTML = '';
-    const playerArr = Object.entries(players);
+function renderSlots(players, needed) {
+  const container = document.getElementById('waiting-slots');
+  container.innerHTML = '';
+  const playerArr = Object.entries(players);
 
-    for (let i = 0; i < needed; i++) {
-      const div = document.createElement('div');
-      if (i < playerArr.length) {
-        const [pid, pdata] = playerArr[i];
-        const isLeft  = pdata.left === true;
-        const isMe    = pid === myId;
-        const canKick = isHost && !isMe;
-        const pts     = pdata.points || 0;
-        div.className = isLeft ? 'slot' : 'slot filled';
-        div.innerHTML = `
-          <span class="slot-num">${i+1}</span>
-          <span class="slot-name" style="${isLeft ? 'color:var(--text-muted);' : ''}">${pdata.name}${isLeft ? ' ↩' : ''}</span>
-          ${isMe ? '<span class="slot-badge">تۆ</span>' : ''}
-          <span style="margin-right:auto;"></span>
-          <span style="font-size:12px; color:var(--gold); font-weight:700; opacity:${isLeft ? 0.5 : 1};">${pts} خاڵ</span>
-          ${canKick ? `<button onclick="kickPlayer('${pid}', '${pdata.name}')" style="background:var(--red); border:none; border-radius:6px; color:white; font-size:11px; padding:3px 8px; cursor:pointer;">دەرکردن</button>` : ''}
-        `;
-      } else {
-        div.className = 'slot';
-        div.innerHTML = `<span class="slot-num">${i+1}</span><span class="slot-name" style="color:var(--text-muted)">چاوەڕوان...</span>`;
-      }
-      container.appendChild(div);
+  for (let i = 0; i < needed; i++) {
+    const div = document.createElement('div');
+    if (i < playerArr.length) {
+      const [pid, pdata] = playerArr[i];
+      const isLeft  = pdata.left === true;
+      const isMe    = pid === myId;
+      const canKick = isHost && !isMe;
+      const pts     = pdata.points || 0;
+      div.className = isLeft ? 'slot' : 'slot filled';
+      div.innerHTML = `
+        <span class="slot-num">${i+1}</span>
+        <span class="slot-name" style="${isLeft ? 'color:var(--text-muted);' : ''}">${pdata.name}${isLeft ? ' ↩' : ''}</span>
+        ${isMe ? '<span class="slot-badge">تۆ</span>' : ''}
+        <span style="margin-right:auto;"></span>
+        <span style="font-size:12px; color:var(--gold); font-weight:700; opacity:${isLeft ? 0.5 : 1};">${pts} خاڵ</span>
+        ${canKick ? `<button onclick="kickPlayer('${pid}', '${pdata.name}')" style="background:var(--red); border:none; border-radius:6px; color:white; font-size:11px; padding:3px 8px; cursor:pointer;">دەرکردن</button>` : ''}
+      `;
+    } else {
+      div.className = 'slot';
+      div.innerHTML = `<span class="slot-num">${i+1}</span><span class="slot-name" style="color:var(--text-muted)">چاوەڕوان...</span>`;
     }
-  });
+    container.appendChild(div);
+  }
 }
 
 function kickPlayer(pid, name) {
@@ -2129,7 +2492,8 @@ function startGame() {
     const soloRoles       = []; // solo GUARANTEED (گێژ)
     const optionalGood    = []; // good team optional specials
 
-    if (roles.mole)      badSpecials.push('mole');
+    if (roles.mole)        badSpecials.push('mole');
+    if (roles.blackmailer) badSpecials.push('blackmailer');
 
     // لێکۆڵەر is GUARANTEED a slot always
     if (roles.detective) guaranteedGood.push('detective');
@@ -2151,8 +2515,9 @@ function startGame() {
     if (roles.towzher)   optionalGood.push('towzher');
     if (roles.hakim)     optionalGood.push('hakim');
     if (roles.layla)     optionalGood.push('layla');
-    if (roles.coroner)   optionalGood.push('coroner');
-    if (roles.mela)      optionalGood.push('mela');
+    if (roles.coroner)    optionalGood.push('coroner');
+    if (roles.mela)       optionalGood.push('mela');
+    if (roles.bodyguard)  optionalGood.push('bodyguard');
 
     shuffle(badSpecials);
     shuffle(optionalGood);
@@ -2228,13 +2593,13 @@ function loadMyRole() {
     document.getElementById('mafia-teammates').style.display = 'none';
     document.getElementById('mafia-list').innerHTML = '';
 
-    // Show bad team teammates for mafia AND mole
-    if (myRole === 'mafia' || myRole === 'mole') {
+    // Show bad team teammates for mafia, mole AND blackmailer
+    if (myRole === 'mafia' || myRole === 'mole' || myRole === 'blackmailer') {
       db.ref('rooms/' + roomCode + '/players').once('value').then(snap => {
         const players = snap.val();
         const mafiaList = document.getElementById('mafia-list');
         mafiaList.innerHTML = '';
-        const badRoles = ['mafia', 'mole'];
+        const badRoles = ['mafia', 'mole', 'blackmailer'];
         Object.entries(players).forEach(([pid, p]) => {
           if (badRoles.includes(p.role) && pid !== myId) {
             const div = document.createElement('div');
@@ -2289,7 +2654,10 @@ function startNight() {
   db.ref('rooms/' + roomCode).update({
     status: 'night',
     nightActions: null,
-    nightDone: null
+    nightDone: null,
+    silencedPlayer: null,
+    bodyguardSaved: null,
+    bodyguardDied: null
   });
 }
 
@@ -2315,6 +2683,8 @@ function showNightPhase() {
   document.getElementById('night-layla-section').style.display = 'none';
   document.getElementById('night-hitman-section').style.display = 'none';
   document.getElementById('night-coroner-section').style.display = 'none';
+  document.getElementById('night-blackmailer-section').style.display = 'none';
+  document.getElementById('night-bodyguard-section').style.display = 'none';
   document.getElementById('coroner-result-box').style.display = 'none';
   document.getElementById('towzher-result-box').style.display = 'none';
   document.getElementById('night-waiting').style.display = 'block';
@@ -2336,7 +2706,7 @@ function showNightPhase() {
         const players = pSnap.val();
         const container = document.getElementById('mafia-target-list');
         container.innerHTML = '';
-        const badRoles = ['mafia', 'mole'];
+        const badRoles = ['mafia', 'mole', 'blackmailer'];
         Object.entries(players).forEach(([pid, p]) => {
           if (!p.alive) return;
           if (pid === myId) return;
@@ -2553,6 +2923,58 @@ function showNightPhase() {
       buildPlayerList('towzher-target2-list', true, true);
       document.getElementById('night-towzher-section').style.display = 'block';
       document.getElementById('night-waiting').style.display = 'none';
+    } else if (myRole === 'blackmailer') {
+      document.getElementById('night-instruction').textContent = 'کێ بێدەنگ دەکەیت؟';
+      document.getElementById('night-blackmailer-section').style.display = 'block';
+      document.getElementById('night-waiting').style.display = 'none';
+      document.getElementById('btn-blackmailer').disabled = true;
+
+      db.ref('rooms/' + roomCode + '/players').once('value').then(pSnap => {
+        const players = pSnap.val();
+        const container = document.getElementById('blackmailer-target-list');
+        container.innerHTML = '';
+        const badRoles = ['mafia', 'mole', 'blackmailer'];
+        Object.entries(players).forEach(([pid, p]) => {
+          if (!p.alive) return;
+          if (pid === myId) return;
+          if (badRoles.includes(p.role)) return; // can't silence teammates
+          const div = document.createElement('div');
+          div.className = 'player-item';
+          div.dataset.pid = pid;
+          div.innerHTML = `<div class="player-avatar">${p.name[0]}</div><span class="player-name">${p.name}</span>`;
+          div.onclick = () => {
+            container.querySelectorAll('.player-item').forEach(i => i.classList.remove('selected'));
+            div.classList.add('selected');
+            document.getElementById('btn-blackmailer').disabled = false;
+          };
+          container.appendChild(div);
+        });
+      });
+    } else if (myRole === 'bodyguard') {
+      document.getElementById('night-instruction').textContent = 'کێ ئەمشەو پارێزیت؟';
+      document.getElementById('night-bodyguard-section').style.display = 'block';
+      document.getElementById('night-waiting').style.display = 'none';
+      document.getElementById('btn-bodyguard').disabled = true;
+
+      db.ref('rooms/' + roomCode + '/players').once('value').then(pSnap => {
+        const players = pSnap.val();
+        const container = document.getElementById('bodyguard-target-list');
+        container.innerHTML = '';
+        Object.entries(players).forEach(([pid, p]) => {
+          if (!p.alive) return;
+          if (pid === myId) return; // can't protect self
+          const div = document.createElement('div');
+          div.className = 'player-item';
+          div.dataset.pid = pid;
+          div.innerHTML = `<div class="player-avatar">${p.name[0]}</div><span class="player-name">${p.name}</span>`;
+          div.onclick = () => {
+            container.querySelectorAll('.player-item').forEach(i => i.classList.remove('selected'));
+            div.classList.add('selected');
+            document.getElementById('btn-bodyguard').disabled = false;
+          };
+          container.appendChild(div);
+        });
+      });
     } else {
       document.getElementById('night-instruction').textContent = 'چاوەڕوانی شەو بە...';
     }
@@ -2723,7 +3145,7 @@ function submitNightAction(type) {
     db.ref('rooms/' + roomCode + '/players/' + targetId).once('value').then(snap => {
       const p = snap.val();
       // Mole deceives detective - appears as good team
-      const badRoles = ['mafia']; // mole NOT included - they fool detective
+      const badRoles = ['mafia', 'blackmailer']; // mole NOT included - they fool detective
       const isBad = badRoles.includes(p.role);
       const box = document.getElementById('detective-result-box');
       const text = document.getElementById('detective-result-text');
@@ -2757,40 +3179,50 @@ function submitNightAction(type) {
 function showSniperPopup(sniperName, targetName) {
   const popup = document.getElementById('sniper-popup');
   const inner = document.getElementById('sniper-popup-inner');
+  const bg    = document.getElementById('sp-bg');
+  const els   = [bg, document.getElementById('sp-icon'), document.getElementById('sniper-popup-name'),
+                 document.getElementById('sniper-popup-top'), document.getElementById('sp-sub'), document.getElementById('sp-sub2')];
+  els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+  document.querySelectorAll('.sp-ring,.sp-crack,.sp-hline,.sp-vline').forEach(el => { el.style.animation='none'; el.offsetHeight; el.style.animation=''; });
+
   document.getElementById('sniper-popup-name').textContent = targetName;
-  document.getElementById('sniper-popup-top').textContent = sniperName + ' فیشەکی دا لە ' + targetName;
+  document.getElementById('sniper-popup-top').textContent  = sniperName + ' فیشەکی دا لە ' + targetName;
   popup.style.display = 'flex';
-  inner.style.animation = 'reviveIn 0.5s ease forwards';
 
   setTimeout(() => {
-    inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
+    inner.style.animation = 'spFadeOut 0.7s ease forwards';
     setTimeout(() => {
       popup.style.display = 'none';
       popup.style.pointerEvents = 'none';
       inner.style.animation = '';
-    }, 600);
-  }, 10000);
+    }, 700);
+  }, 6000);
 }
 
 function showMelaPopup(data, callback) {
   const popup = document.getElementById('mela-popup');
   const inner = document.getElementById('mela-popup-inner');
-  const info = ROLE_INFO[data.targetRole] || { name: data.targetRole, emoji: '?' };
+  const bg    = document.getElementById('mp-bg');
+  const rings = document.querySelectorAll('.mp-ring');
+  const els   = [bg, document.getElementById('mp-drop'), document.getElementById('mela-popup-top'),
+                 document.getElementById('mela-popup-name'), document.getElementById('mela-popup-result'), document.getElementById('mela-popup-sub')];
+  els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+  rings.forEach(r => { r.style.animation='none'; r.offsetHeight; r.style.animation=''; });
 
   document.getElementById('mela-popup-top').textContent = `${data.melaName} مەلایە ئاوی کرد بە ${data.targetName}`;
 
   if (data.isBad) {
-    inner.style.background = 'linear-gradient(135deg,#001428,#002a50)';
-    document.getElementById('mela-popup-name').style.color = '#00bfff';
-    document.getElementById('mela-popup-name').style.textShadow = '0 0 30px #00bfff';
+    bg.style.animation = 'mpBgBlue 0.8s ease forwards';
+    rings.forEach(r => r.style.borderColor = 'rgba(0,191,255,0.5)');
+    document.getElementById('mela-popup-name').style.cssText = 'color:#00bfff; text-shadow:0 0 25px #00bfff;';
     document.getElementById('mela-popup-name').textContent = data.targetName;
     document.getElementById('mela-popup-result').style.color = '#00bfff';
     document.getElementById('mela-popup-result').textContent = 'مەلا مافیایەکی کەشف کرد! 💧';
     document.getElementById('mela-popup-sub').textContent = `${data.targetName} دەرکرا`;
   } else {
-    inner.style.background = 'linear-gradient(135deg,#2d0000,#6b0f1a)';
-    document.getElementById('mela-popup-name').style.color = '#e63946';
-    document.getElementById('mela-popup-name').style.textShadow = '0 0 30px #e63946';
+    bg.style.animation = 'mpBgRed 0.8s ease forwards';
+    rings.forEach(r => r.style.borderColor = 'rgba(230,57,70,0.5)');
+    document.getElementById('mela-popup-name').style.cssText = 'color:#e63946; text-shadow:0 0 25px #e63946;';
     document.getElementById('mela-popup-name').textContent = data.melaName;
     document.getElementById('mela-popup-result').style.color = '#e63946';
     document.getElementById('mela-popup-result').textContent = 'مەلا مرد! ئەوەی ئاوی پیاکرد مافیا نەبوو';
@@ -2798,17 +3230,16 @@ function showMelaPopup(data, callback) {
   }
 
   popup.style.display = 'flex';
-  inner.style.animation = 'reviveIn 0.5s ease forwards';
 
   setTimeout(() => {
-    inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
+    inner.style.animation = 'mpFadeOut 0.7s ease forwards';
     setTimeout(() => {
       popup.style.display = 'none';
       popup.style.pointerEvents = 'none';
       inner.style.animation = '';
       if (callback) callback();
-    }, 600);
-  }, 10000);
+    }, 700);
+  }, 6000);
 }
 
 /* AUDIO_KILL_1 loaded via audio.js */
@@ -2817,79 +3248,151 @@ function showMelaPopup(data, callback) {
 /* AUDIO_VOTED loaded via audio.js */
 
 function showVotedPopup(playerName, callback) {
-  playAudioFade(AUDIO_VOTED, 5000);
+  playAudioFade(AUDIO_VOTED, 6000);
 
   setTimeout(() => {
     const popup = document.getElementById('voted-popup');
     const inner = document.getElementById('voted-popup-inner');
-    document.getElementById('voted-popup-name').textContent = playerName + ' دەرکرا بە دەنگدان';
+    const bg    = document.getElementById('vp-bg');
+    const els   = [bg, document.getElementById('vp-gavel'), document.getElementById('vp-stamp'),
+                   document.getElementById('voted-popup-name'), document.getElementById('vp-sub')];
+    els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+
+    document.getElementById('voted-popup-name').textContent = playerName;
     popup.style.display = 'flex';
     popup.style.pointerEvents = 'auto';
-    inner.style.animation = 'reviveIn 0.5s ease forwards';
 
     setTimeout(() => {
-      inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
-      setTimeout(() => {
-        popup.style.display = 'none';
-        inner.style.animation = '';
-        if (callback) callback();
-      }, 600);
-    }, 5000);
-  }, 1000);
-}
-
-function showKilledPopup(playerName, callback) {
-  // Pick random kill sound
-  const killAudio = Math.random() < 0.5 ? AUDIO_KILL_1 : AUDIO_KILL_2;
-  playAudioFade(killAudio, 10000);
-
-  setTimeout(() => {
-    const popup = document.getElementById('killed-popup');
-    const inner = document.getElementById('killed-popup-inner');
-    document.getElementById('killed-popup-name').textContent = playerName;
-    popup.style.display = 'flex';
-    popup.style.pointerEvents = 'auto';
-    inner.style.animation = 'reviveIn 0.5s ease forwards';
-
-    setTimeout(() => {
-      inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
-      setTimeout(() => {
-        popup.style.display = 'none';
-        inner.style.animation = '';
-        if (callback) callback();
-      }, 600);
-    }, 10000);
-  }, 1000);
-}
-
-/* AUDIO_SAVED loaded via audio.js */
-
-function showSavedPopup(playerName, callback) {
-  playAudioFade(AUDIO_SAVED, 10000);
-
-  setTimeout(() => {
-    const popup = document.getElementById('saved-popup');
-    const inner = document.getElementById('saved-popup-inner');
-    document.getElementById('saved-popup-name').textContent = playerName;
-    popup.style.display = 'flex';
-    inner.style.animation = 'reviveIn 0.5s ease forwards';
-
-    setTimeout(() => {
-      inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
+      inner.style.animation = 'vpFadeOut 0.7s ease forwards';
       setTimeout(() => {
         popup.style.display = 'none';
         popup.style.pointerEvents = 'none';
         inner.style.animation = '';
         if (callback) callback();
-      }, 600);
-    }, 10000);
-  }, 1000);
+      }, 700);
+    }, 6000);
+  }, 500);
+}
+
+function showKilledPopup(playerName, callback, cause) {
+  const killAudio = Math.random() < 0.5 ? AUDIO_KILL_1 : AUDIO_KILL_2;
+  playAudioFade(killAudio, 6000);
+
+  setTimeout(() => {
+    const popup  = document.getElementById('killed-popup');
+    const inner  = document.getElementById('killed-popup-inner');
+    const bg     = document.getElementById('kp-bg');
+    const skull  = document.getElementById('kp-skull');
+    const name   = document.getElementById('killed-popup-name');
+    const sub1   = document.getElementById('kp-killed-text');
+    const sub2   = document.getElementById('kp-sub');
+    const drips  = document.querySelectorAll('.kp-drip');
+
+    // Reset all animations so they replay cleanly
+    [bg, skull, name, sub1, sub2].forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+    drips.forEach(d => { d.style.animation = 'none'; d.offsetHeight; d.style.animation = ''; });
+
+    name.textContent = playerName;
+    sub2.textContent = cause === 'bodyguard' ? 'بۆدیگارد کوشتی 🛡️' : 'مافیا لێی دا 🔪';
+    popup.style.display = 'flex';
+    popup.style.pointerEvents = 'auto';
+
+    setTimeout(() => {
+      inner.style.animation = 'killFadeOut 0.7s ease forwards';
+      setTimeout(() => {
+        popup.style.display = 'none';
+        popup.style.pointerEvents = 'none';
+        inner.style.animation = '';
+        if (callback) callback();
+      }, 700);
+    }, 6000);
+  }, 500);
+}
+
+/* AUDIO_SAVED loaded via audio.js */
+
+function showSavedPopup(playerName, callback) {
+  playAudioFade(AUDIO_SAVED, 6000);
+
+  setTimeout(() => {
+    const popup = document.getElementById('saved-popup');
+    const inner = document.getElementById('saved-popup-inner');
+    const bg    = document.getElementById('svp-bg');
+    const rings = document.querySelectorAll('.svp-ring');
+    const els   = [bg, document.getElementById('svp-icon'), document.getElementById('saved-popup-name'),
+                   document.getElementById('svp-text'), document.getElementById('svp-hb')];
+    els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+    rings.forEach(r => { r.style.animation='none'; r.offsetHeight; r.style.animation=''; });
+
+    document.getElementById('saved-popup-name').textContent = playerName;
+    popup.style.display = 'flex';
+
+    setTimeout(() => {
+      inner.style.animation = 'svpFadeOut 0.7s ease forwards';
+      setTimeout(() => {
+        popup.style.display = 'none';
+        popup.style.pointerEvents = 'none';
+        inner.style.animation = '';
+        if (callback) callback();
+      }, 700);
+    }, 6000);
+  }, 500);
+}
+
+function showSilencedPopup(playerName, callback) {
+  setTimeout(() => {
+    const popup = document.getElementById('silenced-popup');
+    const inner = document.getElementById('silenced-popup-inner');
+    const bg    = document.getElementById('slp-bg');
+    const bars  = document.querySelectorAll('.slp-bar');
+    const els   = [bg, document.getElementById('slp-icon'), document.getElementById('silenced-popup-name'),
+                   document.getElementById('slp-text'), document.getElementById('slp-sub')];
+    els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+    bars.forEach(b => { b.style.animation='none'; b.offsetHeight; b.style.animation=''; });
+
+    document.getElementById('silenced-popup-name').textContent = playerName;
+    popup.style.display = 'flex';
+
+    setTimeout(() => {
+      inner.style.animation = 'slpFadeOut 0.7s ease forwards';
+      setTimeout(() => {
+        popup.style.display = 'none';
+        inner.style.animation = '';
+        if (callback) callback();
+      }, 700);
+    }, 6000);
+  }, 500);
+}
+
+function showBodyguardPopup(savedName, callback) {
+  setTimeout(() => {
+    const popup = document.getElementById('bodyguard-popup');
+    const inner = document.getElementById('bodyguard-popup-inner');
+    const bg    = document.getElementById('bgp-bg');
+    const rings = document.querySelectorAll('.bgp-ring');
+    const els   = [bg, document.getElementById('bgp-shield'), document.getElementById('bgp-title'),
+                   document.getElementById('bgp-bodyguard-name'), document.getElementById('bgp-saved-wrap')];
+    els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+    rings.forEach(r => { r.style.animation='none'; r.offsetHeight; r.style.animation=''; });
+
+    document.getElementById('bgp-bodyguard-name').textContent = savedName;
+    popup.style.display = 'flex';
+
+    setTimeout(() => {
+      inner.style.animation = 'bgpFadeOut 0.7s ease forwards';
+      setTimeout(() => {
+        popup.style.display = 'none';
+        inner.style.animation = '';
+        if (callback) callback();
+      }, 700);
+    }, 6000);
+  }, 500);
 }
 
 // ============================================================
 // ROLE BAR + PLAYERS TABLE
 // ============================================================
-const mafiaRolesSet = ['mafia', 'mole'];
+const mafiaRolesSet = ['mafia', 'mole', 'blackmailer'];
 const soloRolesSet  = ['fool', 'hitman'];
 
 function showRoleBar() {
@@ -3042,26 +3545,33 @@ function playAudioFade(b64, duration) {
 /* AUDIO_REVIVE loaded via audio.js */
 
 function showRevivePopup(playerName, callback) {
-  // Start audio 1s before popup appears
   playAudioFade(AUDIO_REVIVE, 10000);
 
   setTimeout(() => {
-    const popup = document.getElementById('revive-popup');
-    const inner = document.getElementById('revive-popup-inner');
+    const popup   = document.getElementById('revive-popup');
+    const inner   = document.getElementById('revive-popup-inner');
+    const bg      = document.getElementById('rp-bg');
+    const rays    = document.querySelectorAll('.rp-ray');
+    const sparks  = document.querySelectorAll('.rp-spark');
+    const els     = [bg, document.getElementById('rp-orb'), document.getElementById('revive-popup-name'),
+                     document.getElementById('rp-revive-text'), document.getElementById('rp-sub')];
+    els.forEach(el => { if(el){el.style.animation='none'; el.offsetHeight; el.style.animation='';} });
+    rays.forEach(r => { r.style.animation='none'; r.offsetHeight; r.style.animation=''; });
+    sparks.forEach(s => { s.style.animation='none'; s.offsetHeight; s.style.animation=''; });
+
     document.getElementById('revive-popup-name').textContent = playerName;
     popup.style.display = 'flex';
     popup.style.pointerEvents = 'auto';
-    inner.style.animation = 'reviveIn 0.5s ease forwards';
 
     setTimeout(() => {
-      inner.style.animation = 'reviveFadeOut 0.6s ease forwards';
+      inner.style.animation = 'rpFadeOut 0.7s ease forwards';
       setTimeout(() => {
         popup.style.display = 'none';
         inner.style.animation = '';
         if (callback) callback();
-      }, 600);
+      }, 700);
     }, 10000);
-  }, 1000); // show popup 1s after audio starts
+  }, 500);
 }
 
 function submitCoronerAction() {
@@ -3114,6 +3624,26 @@ function laylaSkip() {
   document.getElementById('night-waiting').style.display = 'block';
 }
 
+function submitBlackmailerTarget() {
+  const targetId = getSelected('blackmailer-target-list');
+  if (!targetId) { showToast('یەک کەس هەڵبژێرە!'); return; }
+  nightActionDone = true;
+  db.ref('rooms/' + roomCode + '/nightActions/blackmailerTarget').set(targetId);
+  document.getElementById('night-blackmailer-section').style.display = 'none';
+  document.getElementById('night-waiting').style.display = 'block';
+  document.getElementById('night-instruction').textContent = 'نیشانەت داناوە، چاوەڕوان بە...';
+}
+
+function submitBodyguardAction() {
+  const targetId = getSelected('bodyguard-target-list');
+  if (!targetId) { showToast('یەک کەس هەڵبژێرە!'); return; }
+  nightActionDone = true;
+  db.ref('rooms/' + roomCode + '/nightActions/bodyguardTarget').set(targetId);
+  document.getElementById('night-bodyguard-section').style.display = 'none';
+  document.getElementById('night-waiting').style.display = 'block';
+  document.getElementById('night-instruction').textContent = 'پارێزینەکەت تۆماری کرا، چاوەڕوان بە...';
+}
+
 function submitTowzher() {
   const t1 = getSelected('towzher-target1-list');
   const t2 = getSelected('towzher-target2-list');
@@ -3131,7 +3661,7 @@ function submitTowzher() {
     // mafia/mole = bad, fool = solo, everything else = good
     // mole deceives towzher - appears as good team
     const getTeam = (role) => {
-      if (role === 'mafia') return 'bad';
+      if (role === 'mafia' || role === 'blackmailer') return 'bad';
       if (role === 'fool')  return 'solo';
       return 'good'; // civilian, doctor, detective, sniper, towzher, hakim, layla, coroner, mela, mole(deceives)
     };
@@ -3177,25 +3707,40 @@ function listenNightActions() {
       const actions = room.nightActions || {};
 
       // Check which special roles are alive
-      const hasMafia     = Object.values(players).some(p => p.alive && p.role === 'mafia');
-      const hasDoctor    = Object.values(players).some(p => p.alive && p.role === 'doctor');
-      const hasDetective = Object.values(players).some(p => p.alive && p.role === 'detective');
-      const hasTowzher   = Object.values(players).some(p => p.alive && p.role === 'towzher');
-      const hasLayla     = Object.values(players).some(p => p.alive && p.role === 'layla');
-      const hasCoroner   = Object.values(players).some(p => p.alive && p.role === 'coroner');
-      const hasDeadPlayers = Object.values(players).some(p => !p.alive);
+      const hasMafia        = Object.values(players).some(p => p.alive && p.role === 'mafia');
+      const hasDoctor       = Object.values(players).some(p => p.alive && p.role === 'doctor');
+      const hasDetective    = Object.values(players).some(p => p.alive && p.role === 'detective');
+      const hasTowzher      = Object.values(players).some(p => p.alive && p.role === 'towzher');
+      const hasLayla        = Object.values(players).some(p => p.alive && p.role === 'layla');
+      const hasCoroner      = Object.values(players).some(p => p.alive && p.role === 'coroner');
+      const hasBlackmailer  = Object.values(players).some(p => p.alive && p.role === 'blackmailer');
+      const hasBodyguard    = Object.values(players).some(p => p.alive && p.role === 'bodyguard');
+      const hasDeadPlayers  = Object.values(players).some(p => !p.alive);
 
-      const mafiaReady     = !hasMafia     || actions.kill;
-      const doctorReady    = !hasDoctor    || actions.save;
-      const detectiveReady = !hasDetective || actions.detective;
-      const towzherReady   = !hasTowzher   || actions.towzher;
+      const mafiaReady       = !hasMafia       || actions.kill;
+      const doctorReady      = !hasDoctor      || actions.save;
+      const detectiveReady   = !hasDetective   || actions.detective;
+      const towzherReady     = !hasTowzher     || actions.towzher;
+      const blackmailerReady = !hasBlackmailer || actions.blackmailerTarget;
+      const bodyguardReady   = !hasBodyguard   || actions.bodyguardTarget;
       // Layla and coroner are auto-ready if no dead players exist
-      const laylaReady     = !hasLayla     || actions.revive   || !hasDeadPlayers;
-      const coronerReady  = !hasCoroner   || actions.coroner  || !hasDeadPlayers;
+      const laylaReady       = !hasLayla       || actions.revive  || !hasDeadPlayers;
+      const coronerReady     = !hasCoroner     || actions.coroner || !hasDeadPlayers;
 
-      console.log('Night check:', {mafiaReady, doctorReady, detectiveReady, towzherReady});
+      // Defensive: if host IS one of these roles and alive, ensure THEIR OWN action is in Firebase before resolving
+      const myPlayerData = players[myId];
+      if (myPlayerData && myPlayerData.alive) {
+        if (myRole === 'detective'   && !actions.detective)           return;
+        if (myRole === 'doctor'      && !actions.save)                return;
+        if (myRole === 'towzher'     && !actions.towzher)             return;
+        if (myRole === 'blackmailer' && !actions.blackmailerTarget)   return;
+        if (myRole === 'bodyguard'   && !actions.bodyguardTarget)     return;
+        if (myRole === 'layla'       && !actions.revive && hasDeadPlayers) return;
+        if (myRole === 'coroner'     && !actions.coroner && hasDeadPlayers) return;
+        if (myRole === 'mafia'       && !actions.kill)                return;
+      }
 
-      if (mafiaReady && doctorReady && detectiveReady && towzherReady && laylaReady && coronerReady) {
+      if (mafiaReady && doctorReady && detectiveReady && towzherReady && blackmailerReady && bodyguardReady && laylaReady && coronerReady) {
         clearInterval(nightInterval); nightInterval = null;
         resolveNight(room);
       }
@@ -3205,16 +3750,45 @@ function listenNightActions() {
 
 function resolveNight(room) {
   const actions = room.nightActions || {};
-  const killId = actions.kill ? actions.kill.target : null;
-  const saveId = actions.save ? actions.save.target : null;
+  const killId  = actions.kill ? actions.kill.target : null;
+  const saveId  = actions.save ? actions.save.target : null;
+  const blackmailerTargetId = actions.blackmailerTarget || null;
+  const bodyguardTargetId   = actions.bodyguardTarget   || null;
 
   const reviveId = actions.revive && actions.revive.target !== 'skip' ? actions.revive.target : null;
   const updates = {};
   let killed = null;
 
-  if (killId && killId !== saveId) {
-    updates[`rooms/${roomCode}/players/${killId}/alive`] = false;
-    killed = killId;
+  if (killId) {
+    if (killId === saveId) {
+      // Doctor saved — no kill, savedPlayer set below
+    } else if (bodyguardTargetId && killId === bodyguardTargetId) {
+      // Bodyguard intercepted — a random alive mafia player dies instead
+      const aliveMafiaIds = Object.keys(room.players).filter(pid =>
+        room.players[pid].alive && room.players[pid].role === 'mafia'
+      );
+      if (aliveMafiaIds.length > 0) {
+        const randomMafiaId = aliveMafiaIds[Math.floor(Math.random() * aliveMafiaIds.length)];
+        updates[`rooms/${roomCode}/players/${randomMafiaId}/alive`] = false;
+        updates[`rooms/${roomCode}/bodyguardSaved`] = killId; // target who was protected
+        killed = randomMafiaId; // the mafia who dies
+      } else {
+        // No alive mafia found (edge case) — kill normally
+        updates[`rooms/${roomCode}/players/${killId}/alive`] = false;
+        killed = killId;
+      }
+    } else {
+      // Normal kill
+      updates[`rooms/${roomCode}/players/${killId}/alive`] = false;
+      killed = killId;
+    }
+  }
+
+  // Silenced player: only if they weren't killed that same night
+  if (blackmailerTargetId && blackmailerTargetId !== killed) {
+    updates[`rooms/${roomCode}/silencedPlayer`] = blackmailerTargetId;
+  } else {
+    updates[`rooms/${roomCode}/silencedPlayer`] = null;
   }
 
   // Layla revives a dead player
@@ -3236,7 +3810,8 @@ function resolveNight(room) {
   } else {
     updates[`rooms/${roomCode}/savedPlayer`] = null;
   }
-  // Don't set status yet - host sees result first then continues
+  // Clear bodyguard key if not used this night
+  if (!updates[`rooms/${roomCode}/bodyguardSaved`]) updates[`rooms/${roomCode}/bodyguardSaved`] = null;
 
   updates[`rooms/${roomCode}/status`] = 'night_result';
   updates[`rooms/${roomCode}/killedPlayer`] = killed || 'none';
@@ -3294,23 +3869,32 @@ function showDiscussion() {
   // Show night event popups in sequence: killed → revived → saved
   db.ref('rooms/' + roomCode).once('value').then(snap => {
     const room = snap.val();
-    const killedId  = room.nightResult && room.nightResult !== 'none' ? room.nightResult : null;
-    const revivedId = room.revivedPlayer || null;
-    const savedId   = room.savedPlayer   || null;
-    const players   = room.players || {};
+    const killedId        = room.nightResult && room.nightResult !== 'none' ? room.nightResult : null;
+    const revivedId       = room.revivedPlayer   || null;
+    const savedId         = room.savedPlayer     || null;
+    const silencedId      = room.silencedPlayer  || null;
+    const bodyguardSavedId = room.bodyguardSaved || null;
+    const players          = room.players || {};
 
     // Build queue of popups to show in order
     const queue = [];
 
-    // Order: killed → saved → revived
+    // Order: bodyguard intercept (first, so context is clear) → killed mafia → saved → revived → silenced
+    if (bodyguardSavedId && players[bodyguardSavedId]) {
+      queue.push(() => new Promise(res => showBodyguardPopup(players[bodyguardSavedId].name, res)));
+    }
     if (killedId && players[killedId]) {
-      queue.push(() => new Promise(res => showKilledPopup(players[killedId].name, res)));
+      queue.push(() => new Promise(res => showKilledPopup(players[killedId].name, res, bodyguardSavedId ? 'bodyguard' : undefined)));
     }
     if (savedId && players[savedId]) {
       queue.push(() => new Promise(res => showSavedPopup(players[savedId].name, res)));
     }
     if (revivedId && players[revivedId]) {
       queue.push(() => new Promise(res => showRevivePopup(players[revivedId].name, res)));
+    }
+    // Show silenced popup only if the player is still alive
+    if (silencedId && players[silencedId] && players[silencedId].alive) {
+      queue.push(() => new Promise(res => showSilencedPopup(players[silencedId].name, res)));
     }
 
     // Run queue sequentially, then check win condition (so kill popup finishes before gameover screen)
@@ -3320,8 +3904,8 @@ function showDiscussion() {
           const players = snap.val();
           const alive = Object.values(players).filter(p => p.alive);
           const realMafiaAlive = alive.filter(p => p.role === 'mafia').length;
-          const totalBadAlive  = alive.filter(p => p.role === 'mafia' || p.role === 'mole').length;
-          const goodAlive      = alive.filter(p => p.role !== 'mafia' && p.role !== 'mole').length;
+          const totalBadAlive  = alive.filter(p => ['mafia','mole','blackmailer'].includes(p.role)).length;
+          const goodAlive      = alive.filter(p => !['mafia','mole','blackmailer'].includes(p.role)).length;
           if (realMafiaAlive === 0) {
             db.ref('rooms/' + roomCode).update({ status: 'gameover', winner: 'civilians' });
             return;
@@ -3352,6 +3936,20 @@ function showDiscussion() {
         document.getElementById('disc-result').textContent = `${info.emoji} ئەمشەو ${p.name} (${info.name}) مرد!`;
       }
     }
+
+    // Show silenced badge if someone was silenced this round
+    const silenced = room.silencedPlayer;
+    const silencedBadgeEl = document.getElementById('disc-silenced-badge');
+    if (silenced && room.players[silenced] && room.players[silenced].alive) {
+      const sName = room.players[silenced].name;
+      const isMeSilenced = silenced === myId;
+      if (silencedBadgeEl) {
+        silencedBadgeEl.style.display = 'block';
+        silencedBadgeEl.innerHTML = `🤫 <b>${sName}</b> بێدەنگ کراوە${isMeSilenced ? ' — تۆیت!' : ''}`;
+      }
+    } else {
+      if (silencedBadgeEl) silencedBadgeEl.style.display = 'none';
+    }
   });
 
   // Status bar
@@ -3361,8 +3959,8 @@ function showDiscussion() {
     const anonMode = room.anonymousMode || false;
     const soloOn = room.soloEnabled || false;
     const alive = Object.values(players).filter(p => p.alive);
-    const mafiaAlive = alive.filter(p => p.role === 'mafia' || p.role === 'mole').length;
-    const civAlive = alive.filter(p => p.role !== 'mafia' && p.role !== 'mole').length;
+    const mafiaAlive = alive.filter(p => ['mafia','mole','blackmailer'].includes(p.role)).length;
+    const civAlive   = alive.filter(p => !['mafia','mole','blackmailer'].includes(p.role)).length;
 
     if (anonMode) {
       // Anonymous mode - only show total alive count
@@ -3446,7 +4044,7 @@ function melaThrow() {
     const players = snap.val();
     const target = players[targetId];
     const melaPlayer = players[myId];
-    const badRoles = ['mafia', 'mole'];
+    const badRoles = ['mafia', 'mole', 'blackmailer'];
     const isBad = badRoles.includes(target.role);
 
     const updates = {};
@@ -3780,47 +4378,29 @@ function renderVoteResult(result, elimId, votes) {
     }
   });
 
-  const noElim = !elimId || elimId === 'none';
-  document.getElementById('vr-votes-card').style.display  = noElim ? 'none'  : 'block';
-  document.getElementById('vr-points-card').style.display = noElim ? 'block' : 'none';
+  document.getElementById('vr-votes-card').style.display  = 'none';
+  document.getElementById('vr-points-card').style.display = 'block';
 
-  if (noElim) {
-    // Show points leaderboard instead of votes
-    const pointsList = document.getElementById('vr-points-list');
-    pointsList.innerHTML = '';
-    const medals = ['🥇','🥈','🥉'];
-    db.ref('rooms/' + roomCode + '/players').once('value').then(s => {
-      const players = s.val() || {};
-      const sorted = Object.entries(players)
-        .map(([pid, p]) => ({ pid, name: p.name, pts: p.points || 0 }))
-        .sort((a, b) => b.pts - a.pts);
-      sorted.forEach((p, i) => {
-        const row = document.createElement('div');
-        row.className = 'info-row';
-        row.style.cssText = 'padding:8px 12px; margin:3px 0; border-radius:8px;';
-        row.innerHTML = `
-          <span style="font-size:18px; min-width:28px;">${medals[i] || (i+1) + '.'}</span>
-          <span style="flex:1; font-weight:600;">${p.name}</span>
-          <span style="color:var(--gold); font-weight:700;">${p.pts} خاڵ</span>`;
-        pointsList.appendChild(row);
-      });
+  // Always show points leaderboard
+  const pointsList = document.getElementById('vr-points-list');
+  pointsList.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  db.ref('rooms/' + roomCode + '/players').once('value').then(s => {
+    const players = s.val() || {};
+    const sorted = Object.entries(players)
+      .map(([pid, p]) => ({ pid, name: p.name, pts: p.points || 0 }))
+      .sort((a, b) => b.pts - a.pts);
+    sorted.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'info-row';
+      row.style.cssText = 'padding:8px 12px; margin:3px 0; border-radius:8px;';
+      row.innerHTML = `
+        <span style="font-size:18px; min-width:28px;">${medals[i] || (i+1) + '.'}</span>
+        <span style="flex:1; font-weight:600;">${p.name}</span>
+        <span style="color:var(--gold); font-weight:700;">${p.pts} خاڵ</span>`;
+      pointsList.appendChild(row);
     });
-  } else {
-    // Show votes list
-    const votesList = document.getElementById('vr-votes-list');
-    votesList.innerHTML = '';
-    db.ref('rooms/' + roomCode + '/players').once('value').then(s => {
-      const players = s.val();
-      Object.entries(votes).forEach(([voter, target]) => {
-        const row = document.createElement('div');
-        row.className = 'info-row';
-        const voterName  = players[voter]  ? players[voter].name  : '?';
-        const targetName = players[target] && target !== 'skip' ? players[target].name : 'سکیپ';
-        row.innerHTML = `<span>${voterName}</span><span style="color:var(--text-muted)">→ ${targetName}</span>`;
-        votesList.appendChild(row);
-      });
-    });
-  }
+  });
 
   if (isHost) {
     document.getElementById('btn-next-round-wrapper').style.display = 'block';
@@ -3872,8 +4452,8 @@ function checkWinConditionThen(callback) {
   db.ref('rooms/' + roomCode + '/players').once('value').then(snap => {
     const players = snap.val();
     const alive = Object.values(players).filter(p => p.alive);
-    const mafiaAlive = alive.filter(p => p.role === 'mafia' || p.role === 'mole').length;
-    const civAlive = alive.filter(p => p.role !== 'mafia' && p.role !== 'mole').length;
+    const mafiaAlive = alive.filter(p => ['mafia','mole','blackmailer'].includes(p.role)).length;
+    const civAlive   = alive.filter(p => !['mafia','mole','blackmailer'].includes(p.role)).length;
 
     // Count real mafia separately from mole
     const realMafiaAlive = alive.filter(p => p.role === 'mafia').length;
@@ -3897,6 +4477,8 @@ function checkWinConditionThen(callback) {
 /* AUDIO_FOOL_2 loaded via audio.js */
 
 function showGameOver() {
+  const goScreen = document.getElementById('screen-gameover');
+  goScreen.classList.remove('go-win', 'go-lose');
   showScreen('screen-gameover');
 
   // Turn off any old playAgainSignal listener to prevent flicker
@@ -3908,10 +4490,12 @@ function showGameOver() {
     const players = room.players;
 
     if (winner === 'mafia') {
+      goScreen.classList.add('go-lose');
       document.getElementById('go-emoji').textContent = '🔴';
       document.getElementById('go-title').textContent = 'مافیا بردیەوە!';
       document.getElementById('go-sub').textContent = 'مافیاکان  بردیانەوە';
     } else if (winner === 'civilians') {
+      goScreen.classList.add('go-win');
       document.getElementById('go-emoji').textContent = '🎉';
       document.getElementById('go-title').textContent = 'تیمە باشەکانەکان  بردیانەوە!';
       document.getElementById('go-sub').textContent = 'هەموو مافیاکان دەرکران';
@@ -3938,7 +4522,7 @@ function showGameOver() {
     }
 
     // ── Team helpers ─────────────────────────────────────────
-    const mafiaRoles = ['mafia', 'mole'];
+    const mafiaRoles = ['mafia', 'mole', 'blackmailer'];
     const soloRoles  = ['fool', 'hitman'];
     const getTeam = r => mafiaRoles.includes(r) ? 'bad' : soloRoles.includes(r) ? 'solo' : 'good';
 
@@ -4071,10 +4655,13 @@ function playAgain() {
     updates['rooms/' + roomCode + '/melaThrow'] = null;
     updates['rooms/' + roomCode + '/sniperKill'] = null;
     updates['rooms/' + roomCode + '/checkWinSignal'] = null;
-    updates['rooms/' + roomCode + '/revivedPlayer'] = null;
-    updates['rooms/' + roomCode + '/savedPlayer'] = null;
-    updates['rooms/' + roomCode + '/nightResult'] = null;
-    updates['rooms/' + roomCode + '/killedPlayer'] = null;
+    updates['rooms/' + roomCode + '/revivedPlayer']  = null;
+    updates['rooms/' + roomCode + '/savedPlayer']    = null;
+    updates['rooms/' + roomCode + '/nightResult']    = null;
+    updates['rooms/' + roomCode + '/killedPlayer']   = null;
+    updates['rooms/' + roomCode + '/silencedPlayer'] = null;
+    updates['rooms/' + roomCode + '/bodyguardDied']  = null;
+    updates['rooms/' + roomCode + '/bodyguardSaved'] = null;
     // Signal to all players to go back to waiting room
     updates['rooms/' + roomCode + '/playAgainSignal'] = Date.now();
     updates['rooms/' + roomCode + '/pointsAwarded']  = null;
@@ -4185,6 +4772,15 @@ const ROLE_GUIDE = {
     win: ' دەیبەیتەوە کاتێک تیمە باشەکان  دەرکرێن.',
     tip: 'هەرگیز خۆت وەکو مافیا ئاشکرا مەکە — چوونکە تۆ ماتوانین دەنگ بدەیت تەنها شتی باشت ئەوەیە لێکۆڵەر ناتوانێ کەشفت بکا!'
   },
+  blackmailer: {
+    emoji: '🤫',
+    img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMGEwMDFhIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMyMjAwNDQiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjM3IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTAwY2MiIHN0cm9rZS13aWR0aD0iMS4yIiBvcGFjaXR5PSIwLjciLz4KICA8ZWxsaXBzZSBjeD0iNDAiIGN5PSIyNyIgcng9IjEzIiByeT0iMTUiIGZpbGw9IiNlOGM4OWEiLz4KICA8cGF0aCBkPSJNMjcgMjIgUTI3IDggNDAgOSBRNTMgOCA1MyAyMiBRNTEgMTMgNDAgMTMgUTI5IDEzIDI3IDIyWiIgZmlsbD0iIzExMDAyMiIvPgogIDxlbGxpcHNlIGN4PSIzNSIgY3k9IjI0IiByeD0iMy4yIiByeT0iMS44IiBmaWxsPSIjMGEwMDFhIi8+CiAgPGVsbGlwc2UgY3g9IjQ1IiBjeT0iMjQiIHJ4PSIzLjIiIHJ5PSIxLjgiIGZpbGw9IiMwYTAwMWEiLz4KICA8ZWxsaXBzZSBjeD0iMzUiIGN5PSIyNCIgcng9IjEuNCIgcnk9IjAuOSIgZmlsbD0iI2NjNDRmZiIvPgogIDxlbGxpcHNlIGN4PSI0NSIgY3k9IjI0IiByeD0iMS40IiByeT0iMC45IiBmaWxsPSIjY2M0NGZmIi8+CiAgPHJlY3QgeD0iMzMiIHk9IjMyIiB3aWR0aD0iMTQiIGhlaWdodD0iNCIgcng9IjIiIGZpbGw9IiM3NzAwYWEiLz4KICA8cGF0aCBkPSJNNTYgNTAgUTUyIDQ0IDQ3IDM2IiBzdHJva2U9IiNlOGM4OWEiIHN0cm9rZS13aWR0aD0iNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGVsbGlwc2UgY3g9IjQ3IiBjeT0iMzUiIHJ4PSIyLjUiIHJ5PSIzIiBmaWxsPSIjZThjODlhIi8+CiAgPHBhdGggZD0iTTI3IDQxIFEyMCA1NCAxOCA3MCBMNjIgNzAgUTYwIDU0IDUzIDQxIFE0NyA0NyA0MCA0NyBRMzMgNDcgMjcgNDFaIiBmaWxsPSIjMWEwMDMzIi8+Cjwvc3ZnPgo=`,
+    name: 'بلاکمەیلەر',
+    team: '🔴 تیمی خراپ',
+    ability: 'هەموو شەوێک یەکێک دیاری دەکەیت بۆ ڕۆژ بێدەنگ ئەبێتت نابێت قسە بکا !',
+    win: 'تۆ لەگەڵ مافیای ئەبێ تیمە باشەکان دەرکرێن',
+    tip: ' ئەو کەسە بێدەنگ بکە کە ڕۆڵەکەی بەسوودە و دژی ئێوەیە لە تیمە باشەکان'
+  },
   mela: {
     emoji: '💧',
     name: 'مەلا',
@@ -4216,6 +4812,15 @@ const ROLE_GUIDE = {
     ability: 'هیچ تواناێکی شەوانەت نییە. بەڵام لە کاتی دەنگدان دەنگەکەت بە دوو دەنگ حسابە!',
     win: ' دەیباتەوە کاتێک هەموو مافیاکان دەردەکرێن.',
     tip: 'ئاگاداربە  دەنگ بەکێ دەدەیت — دەنگەکەت زۆر کاریگەرترە لە کەسانی تر. چاوەڕوان بە تا دڵنیا ببیتەوە!'
+  },
+  bodyguard: {
+    emoji: '🛡️',
+    img: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMDcxMTFmIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzYiIGZpbGw9IiMwZDJiNTIiIG9wYWNpdHk9IjAuNDUiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDg5NWVmIiBzdHJva2Utd2lkdGg9IjEuMiIgb3BhY2l0eT0iMC42Ii8+PGVsbGlwc2UgY3g9IjQyIiBjeT0iMjAiIHJ4PSIxMCIgcnk9IjExIiBmaWxsPSIjZThjODlhIi8+PHBhdGggZD0iTTMyIDE2IFEzMiA3IDQyIDggUTUyIDcgNTIgMTYgUTUwIDEwIDQyIDEwIFEzNCAxMCAzMiAxNloiIGZpbGw9IiMxYTI4NDAiLz48ZWxsaXBzZSBjeD0iMzguNSIgY3k9IjE5IiByeD0iMiIgcnk9IjEuNyIgZmlsbD0iIzBkMWIzNSIvPjxlbGxpcHNlIGN4PSI0NS41IiBjeT0iMTkiIHJ4PSIyIiByeT0iMS43IiBmaWxsPSIjMGQxYjM1Ii8+PGVsbGlwc2UgY3g9IjM4LjgiIGN5PSIxOC44IiByeD0iMC44IiByeT0iMSIgZmlsbD0iIzQ4OTVlZiIvPjxlbGxpcHNlIGN4PSI0NS44IiBjeT0iMTguOCIgcng9IjAuOCIgcnk9IjEiIGZpbGw9IiM0ODk1ZWYiLz48cGF0aCBkPSJNMzkgMjUgUTQyIDI2LjUgNDUgMjUiIHN0cm9rZT0iIzlhOGE3YSIgc3Ryb2tlLXdpZHRoPSIxLjEiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCAzNiBRMjMgNTIgMjIgNjggTDYyIDY4IFE2MSA1MiA1NiAzNiBRNTAgNDEgNDIgNDEgUTM0IDQxIDI4IDM2WiIgZmlsbD0iIzFhM2E2ZSIvPjxwYXRoIGQ9Ik0zMSAzNiBRNDIgNDMgNTMgMzYgUTUwIDU0IDQyIDU3IFEzNCA1NCAzMSAzNloiIGZpbGw9IiMwZDIyNTUiLz48bGluZSB4MT0iNDIiIHkxPSIzNiIgeDI9IjQyIiB5Mj0iNTciIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjkiIG9wYWNpdHk9IjAuNSIvPjxwYXRoIGQ9Ik0zMyA0MyBRNDIgNDcgNTEgNDMiIHN0cm9rZT0iIzQ4OTVlZiIgc3Ryb2tlLXdpZHRoPSIwLjgiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIyNCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxlbGxpcHNlIGN4PSI2MCIgY3k9IjM3IiByeD0iNiIgcnk9IjQuNSIgZmlsbD0iIzE1NjVDMCIvPjxwYXRoIGQ9Ik0yNiA0MCBRMjAgNTAgMjAgNjAiIHN0cm9rZT0iI2U4Yzg5YSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNyA0NSBMNyA2MCBRNyA2OSAxNiA3MyBRMjUgNjkgMjUgNjAgTDI1IDQ1IFoiIGZpbGw9IiMxNTY1QzAiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48cGF0aCBkPSJNOSA0NyBMOSA1OSBROSA2NiAxNiA3MCBRMjMgNjYgMjMgNTkgTDIzIDQ3IFoiIGZpbGw9IiMwRDQ3QTEiLz48bGluZSB4MT0iMTYiIHkxPSI0NiIgeDI9IjE2IiB5Mj0iNzIiIHN0cm9rZT0iIzY0QjVGNiIgc3Ryb2tlLXdpZHRoPSIxLjEiIG9wYWNpdHk9IjAuOCIvPjxsaW5lIHgxPSI4IiB5MT0iNTgiIHgyPSIyNCIgeTI9IjU4IiBzdHJva2U9IiM2NEI1RjYiIHN0cm9rZS13aWR0aD0iMS4xIiBvcGFjaXR5PSIwLjgiLz48cGF0aCBkPSJNMTAgNDkgUTE0IDQ3IDE0IDUzIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zNSkiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZWxsaXBzZSBjeD0iNDAiIGN5PSI2OCIgcng9IjE4IiByeT0iMyIgZmlsbD0iIzQ4OTVlZiIgb3BhY2l0eT0iMC4yIi8+PC9zdmc+`,
+    name: 'بۆدیگارد',
+    team: '🟢 تیمە باشەکان',
+    ability: 'هەر شەوێک یەک کەس دیاری دەکەیت بۆ پارێزتن. ئەگەر مافیا ئەو کەسە هەدەف بگرێت — یەک مافیای هەڵکەوتووی تێیدا کوژرا دەبێت! تۆ و ئەو کەسەی پارێزتووتیش ژیان دەمێنن.',
+    win: 'دەیبەیتەوە کاتێک هەموو مافیاکان دەرکرێن.',
+    tip: 'ئەو کەسە بپارێزە کە مافیا پێی دەچێت — لێکۆڵەر، دکتۆر، یان کەسایەتی گرنگ. هەر شەو دەتوانیت مافیاییەک بکوژیت!'
   }
 };
 
